@@ -1,3 +1,4 @@
+import strava from 'strava-v3';
 import { MessageBuilder, Webhook } from 'discord-webhook-node';
 import { Activity } from '../models/activity';
 import { AthleteAccess } from '../models/athlete-access';
@@ -5,8 +6,12 @@ import { AthleteAccess } from '../models/athlete-access';
 const webHook = new Webhook(process.env.DISCORD_WEBHOOK_URL!);
 
 export async function sendMessage(athleteAccess: AthleteAccess, activity: Activity) {
+  const athleteName = getAthleteName(athleteAccess);
+  const athletePhotoUrl = await getAthletePhotoUrl(athleteAccess);
+
   const message = new MessageBuilder()
-    .setTitle(`${getAthleteName(athleteAccess)} posted a new *${activity.type}* activity`)
+    .setTitle(`${athleteName} posted a new *${activity.type}* activity`)
+    .setAuthor(`${athleteName}`, athletePhotoUrl, getAthleteUrl(athleteAccess))
     // @ts-ignore
     .setURL(`https://www.strava.com/activities/${activity.id}`) 
     .setDescription(activity.name)
@@ -23,6 +28,12 @@ export async function sendMessage(athleteAccess: AthleteAccess, activity: Activi
   await webHook.send(message);
 }
 
+async function getAthletePhotoUrl(athleteAccess: AthleteAccess) {
+  const athlete = await strava.athlete.get({ 'access_token': athleteAccess.access_token })
+
+  return athlete.profile_medium;
+}
+
 function getAthleteName(athleteAccess: AthleteAccess) {
   return athleteAccess.athlete_lastname
     ? `${athleteAccess.athlete_firstname} ${athleteAccess.athlete_lastname}`
@@ -35,7 +46,11 @@ function getStaticMapUrl(activity: Activity) {
   const encodedPolyline = encodeURIComponent(activity.map.summary_polyline);
   const queryParams = `access_token=${process.env.MAPBOX_API_KEY}`;
 
-  return `https://${host}/${path}/path-5+f44-0.5(${encodedPolyline})/auto/500x300?${queryParams}`
+  return `https://${host}/${path}/path-3+f44-0.75(${encodedPolyline})/auto/500x300?${queryParams}`
+}
+
+function getAthleteUrl(athleteAccess: AthleteAccess) {
+  return `https://www.strava.com/athletes/${athleteAccess.athlete_id}`;
 }
 
 function getDistance(activity: Activity) {

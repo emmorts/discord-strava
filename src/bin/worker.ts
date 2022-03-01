@@ -41,7 +41,7 @@ async function processAthlete(athleteAccess: AthleteAccess): Promise<void> {
     }
   }
   
-  console.log(`[${athleteAccess.athlete_firstname} ${athleteAccess.athlete_lastname}${newActivities}] ${activities.length} recent, ${newActivities} new`);
+  console.log(`[${athleteAccess.athlete_id}] ${activities.length} recent, ${newActivities} new`);
 }
 
 async function processAthleteActivity(athleteAccess: AthleteAccess, activity: Activity): Promise<boolean> {
@@ -55,7 +55,7 @@ async function processAthleteActivity(athleteAccess: AthleteAccess, activity: Ac
     if (!ALLOWED_ACTIVITY_TYPES.length || ALLOWED_ACTIVITY_TYPES.includes(activity.type)) {
       await sendMessage(athleteAccess, activity);
     }
-    
+
     return true;
   }
 
