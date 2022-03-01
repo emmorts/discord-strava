@@ -10,25 +10,21 @@ const DAY = 3600 * 24;
 
 initializeDatabase();
 
-cron.schedule('*/5 * * * *', async () => {
-  console.log(`Executing cron job`);
+(async function () {
+  await doWork();
+})();
 
+cron.schedule('*/5 * * * *', async () => await doWork());
+
+async function doWork() {
   const athleteAccesses = await getAllAthleteAccesses();
 
   console.log(`Found ${athleteAccesses.length} athletes`);
-
+  
   for (let athleteIndex = 0; athleteIndex < athleteAccesses.length; athleteIndex++) {
     await processAthlete(athleteAccesses[athleteIndex]);
   }
-});
-
-// (async function () {
-//   const athleteAccesses = await getAllAthleteAccesses();
-  
-//   for (let athleteIndex = 0; athleteIndex < athleteAccesses.length; athleteIndex++) {
-//     await processAthlete(athleteAccesses[athleteIndex]);
-//   }
-// })();
+}
 
 async function processAthlete(athleteAccess: AthleteAccess): Promise<void> {
   await refreshToken(athleteAccess);
