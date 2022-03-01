@@ -4,9 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "concurrently \"npm run server\" \"npm run worker\"",
-    "server": "ts-node ./src/bin/www",
-    "worker": "ts-node ./src/bin/worker",
+    "start:dev": "concurrently \"npm run server\" \"npm run worker\"",
+    "server:dev": "ts-node ./src/bin/www",
+    "worker:dev": "ts-node ./src/bin/worker",
+    "start:prod": "concurrently \"npm run server:prod\" \"npm run worker:prod\"",
+    "server:prod": "node ./dist/bin/www",
+    "worker:prod": "node ./dist/bin/worker",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

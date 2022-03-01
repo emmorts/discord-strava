@@ -1,13 +1,13 @@
 # syntax=docker/dockerfile:1
 
-FROM alpine:latest
+FROM node:alpine
 
 ENV NODE_ENV=production
 WORKDIR /app
 
 COPY ["package.json", "package-lock.json*", "./"]
-RUN npm install
+RUN npm install && npm run build
 
 COPY . .
 
-CMD [ "npm", "start" ]
+CMD [ "npm", "run start:prod" ]
