@@ -10,14 +10,14 @@ export async function sendMessage(athleteAccess: AthleteAccess, activity: Activi
     // @ts-ignore
     .setURL(`https://www.strava.com/activities/${activity.id}`) 
     .setDescription(activity.name)
-    .addField('Distance', `${activity.distance} km`, true)
+    .addField('Distance', getDistance(activity), true)
     .addField('Time', getTime(activity), true)
     .addField('Pace', getPace(activity), true)
     .addField('Speed', getSpeed(activity), true)
     .addField('Heart Rate', getHeartRate(activity), true)
     .addField('Cadence', getCadence(activity), true)
     .setImage(getStaticMapUrl(activity))
-    // .setFooter(`Check out the activity here: https://www.strava.com/activities/${activity.id}`)
+    // .setFooter(`Activity posted on ${activity}`)
     .setTimestamp();
 
   await webHook.send(message);
@@ -36,6 +36,12 @@ function getStaticMapUrl(activity: Activity) {
   const queryParams = `access_token=${process.env.MAPBOX_API_KEY}`;
 
   return `https://${host}/${path}/path-5+f44-0.5(${encodedPolyline})/auto/500x300?${queryParams}`
+}
+
+function getDistance(activity: Activity) {
+  return activity 
+    ? `${Math.round(activity.distance / 1000 * 100) / 100} km`
+    : 'N/A';
 }
 
 function getTime(activity: Activity) {
