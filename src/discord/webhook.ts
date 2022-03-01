@@ -10,7 +10,7 @@ export async function sendMessage(athleteAccess: AthleteAccess, activity: Activi
   const athletePhotoUrl = await getAthletePhotoUrl(athleteAccess);
 
   const message = new MessageBuilder()
-    .setTitle(`${athleteName} posted a new *${activity.type}* activity`)
+    .setTitle(`New *${activity.type}* activity!`)
     .setAuthor(`${athleteName}`, athletePhotoUrl, getAthleteUrl(athleteAccess))
     // @ts-ignore
     .setURL(`https://www.strava.com/activities/${activity.id}`) 
@@ -22,7 +22,7 @@ export async function sendMessage(athleteAccess: AthleteAccess, activity: Activi
     .addField('Heart Rate', getHeartRate(activity), true)
     .addField('Cadence', getCadence(activity), true)
     .setImage(getStaticMapUrl(activity))
-    // .setFooter(`Activity posted on ${activity}`)
+    .setFooter(`${activity.achievement_count} achievements gained`, 'https://static-00.iconduck.com/assets.00/trophy-emoji-512x512-x32hyhlp.png')
     .setTimestamp();
 
   await webHook.send(message);
