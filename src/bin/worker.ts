@@ -11,7 +11,11 @@ const DAY = 3600 * 24;
 initializeDatabase();
 
 cron.schedule('*/5 * * * *', async () => {
+  console.log(`Executing cron job`);
+
   const athleteAccesses = await getAllAthleteAccesses();
+
+  console.log(`Found ${athleteAccesses.length} athletes`);
 
   for (let athleteIndex = 0; athleteIndex < athleteAccesses.length; athleteIndex++) {
     await processAthlete(athleteAccesses[athleteIndex]);
@@ -31,6 +35,8 @@ async function processAthlete(athleteAccess: AthleteAccess): Promise<void> {
 
   const activities = await getActivities(athleteAccess);
 
+  console.log(`Found ${activities.length} recent activities for athlete ${athleteAccess.athlete_id}`);
+
   for (let activityIndex = 0; activityIndex < activities.length; activityIndex++) { 
     await processAthleteActivity(athleteAccess, activities[activityIndex]);
   }
@@ -39,6 +45,8 @@ async function processAthlete(athleteAccess: AthleteAccess): Promise<void> {
 async function processAthleteActivity(athleteAccess: AthleteAccess, activity: Activity): Promise<void> {
   const existingActivity = await getAthleteActivity(activity.id);
   if (!existingActivity) {
+    console.log(`New activity for athlete ${athleteAccess.athlete_id}`);
+
     await saveAthleteActivity({
       athlete_id: athleteAccess.athlete_id,
       activity_id: activity.id
