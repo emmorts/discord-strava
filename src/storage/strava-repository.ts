@@ -69,7 +69,7 @@ export function saveAthleteActivity(athleteActivity: AthleteActivity) {
 
     db.serialize(() => {
       db.run(`
-        INSERT INTO athlete_access (athlete_id, activity_id)
+        INSERT INTO athlete_activity (athlete_id, activity_id)
         VALUES ($athleteId, $activityId)
       `, {
         $athleteId: athleteActivity.athlete_id,
