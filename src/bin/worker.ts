@@ -7,18 +7,20 @@ import { Activity } from '../models/activity';
 import { sendMessage } from '../discord/webhook';
 
 const DAY = 3600 * 24;
+const SCHEDULE = process.env.SCHEDULE || '*/5 * * * *';
+const ALLOWED_ACTIVITY_TYPES = process.env.ALLOWED_ACTIVITY_TYPES?.split(',') || [];
 
 (async function () {
   await initializeDatabase();
   await doWork();
 })();
 
-cron.schedule('*/5 * * * *', async () => await doWork());
+cron.schedule(SCHEDULE, async () => await doWork());
 
 async function doWork() {
-  const athleteAccesses = await getAllAthleteAccesses();
+  console.log(`Checking for new activities...`);
 
-  console.log(`Found ${athleteAccesses.length} athletes`);
+  const athleteAccesses = await getAllAthleteAccesses();
   
   for (let athleteIndex = 0; athleteIndex < athleteAccesses.length; athleteIndex++) {
     await processAthlete(athleteAccesses[athleteIndex]);
@@ -30,8 +32,6 @@ async function processAthlete(athleteAccess: AthleteAccess): Promise<void> {
 
   const activities = await getActivities(athleteAccess);
 
-  console.log(`Found ${activities.length} recent activities for athlete ${athleteAccess.athlete_firstname} ${athleteAccess.athlete_lastname}`);
-
   let newActivities = 0;
 
   for (let activityIndex = 0; activityIndex < activities.length; activityIndex++) { 
@@ -41,20 +41,21 @@ async function processAthlete(athleteAccess: AthleteAccess): Promise<void> {
     }
   }
   
-  console.log(`${newActivities} new activities for athlete ${athleteAccess.athlete_firstname} ${athleteAccess.athlete_lastname}`);
+  console.log(`[${athleteAccess.athlete_firstname} ${athleteAccess.athlete_lastname}${newActivities}] ${activities.length} recent, ${newActivities} new`);
 }
 
 async function processAthleteActivity(athleteAccess: AthleteAccess, activity: Activity): Promise<boolean> {
   const existingActivity = await getAthleteActivity(activity.id);
   if (!existingActivity) {
-    console.log(`New activity for athlete ${athleteAccess.athlete_firstname} ${athleteAccess.athlete_lastname}`);
-
     await saveAthleteActivity({
       athlete_id: athleteAccess.athlete_id,
       activity_id: activity.id
     });
-    await sendMessage(athleteAccess, activity);
 
+    if (!ALLOWED_ACTIVITY_TYPES.length || ALLOWED_ACTIVITY_TYPES.includes(activity.type)) {
+      await sendMessage(athleteAccess, activity);
+    }
+    
     return true;
   }
 
