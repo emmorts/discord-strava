@@ -44,7 +44,6 @@ export function initializeDatabase() {
 }
 
 export function getAthleteActivity(activityId: number): Promise<AthleteActivity> {
-
   return new Promise((resolve, reject) => {
     const db = openDatabase();
 
@@ -73,7 +72,7 @@ export function saveAthleteActivity(athleteActivity: AthleteActivity) {
         VALUES ($athleteId, $activityId)
       `, {
         $athleteId: athleteActivity.athlete_id,
-        $accessactivityIdToken: athleteActivity.activity_id
+        $activityId: athleteActivity.activity_id
       }, err => {
         if (err) {
           reject(err);
