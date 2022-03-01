@@ -8,9 +8,8 @@ import { sendMessage } from '../discord/webhook';
 
 const DAY = 3600 * 24;
 
-initializeDatabase();
-
 (async function () {
+  await initializeDatabase();
   await doWork();
 })();
 
@@ -31,24 +30,35 @@ async function processAthlete(athleteAccess: AthleteAccess): Promise<void> {
 
   const activities = await getActivities(athleteAccess);
 
-  console.log(`Found ${activities.length} recent activities for athlete ${athleteAccess.athlete_id}`);
+  console.log(`Found ${activities.length} recent activities for athlete ${athleteAccess.athlete_firstname} ${athleteAccess.athlete_lastname}`);
+
+  let newActivities = 0;
 
   for (let activityIndex = 0; activityIndex < activities.length; activityIndex++) { 
-    await processAthleteActivity(athleteAccess, activities[activityIndex]);
+    const isNew = await processAthleteActivity(athleteAccess, activities[activityIndex]);
+    if (isNew) {
+      newActivities++;
+    }
   }
+  
+  console.log(`${newActivities} new activities for athlete ${athleteAccess.athlete_firstname} ${athleteAccess.athlete_lastname}`);
 }
 
-async function processAthleteActivity(athleteAccess: AthleteAccess, activity: Activity): Promise<void> {
+async function processAthleteActivity(athleteAccess: AthleteAccess, activity: Activity): Promise<boolean> {
   const existingActivity = await getAthleteActivity(activity.id);
   if (!existingActivity) {
-    console.log(`New activity for athlete ${athleteAccess.athlete_id}`);
+    console.log(`New activity for athlete ${athleteAccess.athlete_firstname} ${athleteAccess.athlete_lastname}`);
 
     await saveAthleteActivity({
       athlete_id: athleteAccess.athlete_id,
       activity_id: activity.id
     });
     await sendMessage(athleteAccess, activity);
+
+    return true;
   }
+
+  return false;
 }
 
 async function getActivities(athleteAccess: AthleteAccess): Promise<Activity[]> {

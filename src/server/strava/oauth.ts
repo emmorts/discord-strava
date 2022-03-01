@@ -13,8 +13,6 @@ export function addOAuthRoutes(router: Router) {
 
   router.get('/auth/strava/callback', async ctx => {
     const payload = await strava.oauth.getToken(ctx.query.code as string);
-
-    console.log(payload.athlete);
     const existingAthlete = await getAthleteAccess(payload.athlete.id);
 
     saveAthleteAccess({
