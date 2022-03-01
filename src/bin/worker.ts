@@ -39,10 +39,10 @@ async function processAthlete(athleteAccess: AthleteAccess): Promise<void> {
 async function processAthleteActivity(athleteAccess: AthleteAccess, activity: Activity): Promise<void> {
   const existingActivity = await getAthleteActivity(activity.id);
   if (!existingActivity) {
-    // await saveAthleteActivity({
-    //   athlete_id: athleteAccess.athlete_id,
-    //   activity_id: activity.id
-    // });
+    await saveAthleteActivity({
+      athlete_id: athleteAccess.athlete_id,
+      activity_id: activity.id
+    });
     await sendMessage(athleteAccess, activity);
   }
 }
