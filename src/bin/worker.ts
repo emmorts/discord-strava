@@ -7,7 +7,7 @@ import { Activity } from '../models/activity';
 import { sendMessage } from '../discord/webhook';
 
 const DAY = 3600 * 24;
-const SCHEDULE = process.env.SCHEDULE || '*/5 * * * *';
+const SCHEDULE = process.env.SCHEDULE || '*/5 5-23 * * *';
 const ALLOWED_ACTIVITY_TYPES = process.env.ALLOWED_ACTIVITY_TYPES?.split(',') || [];
 
 (async function () {
