@@ -65,8 +65,6 @@ function getTime(activity: Activity) {
   const totalMinutes = (~~totalTime - totalHours * 60);
   const totalSeconds = Math.round(totalTime % 1 * 60);
 
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  
   return totalHours === 0
     ? `${pad(totalMinutes)}:${pad(totalSeconds)}`
     : `${pad(totalHours)}:${pad(totalMinutes)}:${pad(totalSeconds)}`;
@@ -77,7 +75,11 @@ function getPace(activity: Activity) {
   const paceMinutes = ~~paceTime;
   const paceSeconds = Math.round(paceTime % 1 * 60);
 
-  return `${paceMinutes}:${paceSeconds}`;
+  return `${paceMinutes}:${pad(paceSeconds)} /km`;
+}
+
+function pad(n: number) {
+  return n.toString().padStart(2, '0');
 }
 
 function getHeartRate(activity: Activity) {
