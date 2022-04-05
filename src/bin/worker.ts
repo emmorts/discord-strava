@@ -30,7 +30,13 @@ async function doWork() {
 async function processAthlete(athleteAccess: AthleteAccess): Promise<void> {
   await refreshToken(athleteAccess);
 
-  const activities = await getActivities(athleteAccess);
+  let activities: Activity[] = [];
+
+  try {
+    activities = await getActivities(athleteAccess);
+  } catch (err) {
+    console.error(err);
+  }
 
   let newActivities = 0;
 
