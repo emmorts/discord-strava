@@ -1,6 +1,6 @@
 import Router from '@koa/router';
 
-import { default as strava, Strava } from 'strava-v3';
+import { default as strava } from 'strava-v3';
 import { getAthleteAccess, saveAthleteAccess } from '../../storage/strava-repository';
 
 export function addOAuthRoutes(router: Router) {
