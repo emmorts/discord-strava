@@ -35,7 +35,9 @@ async function processAthlete(athleteAccess: AthleteAccess): Promise<void> {
   try {
     activities = await getActivities(athleteAccess);
   } catch (err) {
-    console.error(err);
+    console.error(JSON.stringify(err));
+
+    return;
   }
 
   let newActivities = 0;
