@@ -94,7 +94,7 @@ async function processAthleteActivity(athleteAccess: AthleteAccess, activity: Ac
 async function getActivities(athleteAccess: AthleteAccess): Promise<Activity[]> {
   return new Promise((resolve, reject) => {
     const before = ~~(Date.now() / 1000);
-    const after = before - DAY * 7;
+    const after = before - DAY;
   
     strava.athlete.listActivities({
       'access_token': athleteAccess.access_token,
