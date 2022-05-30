@@ -1,9 +1,8 @@
+import puppeteer from 'puppeteer';
 import { CommandInteraction } from 'discord.js';
-import { MonthlyStatisticsAggregate } from '../../models/monthly-statistics-aggregate';
-import { getMonthlyStatisticsAggregate } from '../../storage/strava-repository';
-import { table, TableUserConfig } from 'table';
 import { CommandBase } from './command-base';
-import { getDistance, getPace, getTime, round } from '../../util/sport-maths';
+
+const DOMAIN = process.env.APP_DOMAIN || 'http://localhost:3000';
 
 export class StatsCommand extends CommandBase {
   getName(): string {
@@ -15,52 +14,21 @@ export class StatsCommand extends CommandBase {
   }
 
   async handle(interaction: CommandInteraction): Promise<void> {
-    const monthlyAggregates = await getMonthlyStatisticsAggregate();
+    const browser = await puppeteer.launch({
+      args: ['--disable-dev-shm-usage'],
+    });
+    const page = await browser.newPage();
 
-    await interaction.reply(gnerateMessage(monthlyAggregates));
+    await page.goto(`${DOMAIN}/leaderboards/monthly/bare`);
+
+    const buffer = await page.screenshot({ omitBackground: true });
+  
+    await browser.close();
+
+    interaction.reply({
+      files: [buffer],
+      content: 'Soad'
+    });
   }
   
-}
-
-function gnerateMessage(aggregates: MonthlyStatisticsAggregate[]) {
-  const locale = new Intl.DateTimeFormat('en-GB', { month: 'long' });
-  const currentMonth = locale.format(new Date());
-
-  const tableData = getTableData(aggregates);
-  const tableConfig: TableUserConfig = {
-    columns: [
-      { alignment: 'center' },
-      { alignment: 'left' },
-      { alignment: 'right' },
-      { alignment: 'right' },
-      { alignment: 'right' },
-      { alignment: 'right' }
-    ]
-  };
-
-  return `
-**Leaderboard for ${currentMonth}**
-\`\`\`
-${table(tableData, tableConfig)}
-\`\`\`
-  `;
-}
-
-function getTableData(aggregates: MonthlyStatisticsAggregate[]) {
-  const table = [
-    ['#', 'Athlete', 'Distance', 'Time', 'Elevation Gain', 'Average Pace']
-  ];
-
-  aggregates.forEach((aggregate, index) => {
-    table.push([
-      `#${index + 1}`,
-      `${aggregate.athlete_firstname} ${aggregate.athlete_lastname}`,
-      getDistance(aggregate.total_distance) || 'N/A',
-      getTime(aggregate.total_moving_time) || 'N/A',
-      `${round(aggregate.total_elevation_gain)} m`,
-      getPace(aggregate.total_distance, aggregate.total_moving_time) || 'N/A'
-    ]);
-  });
-
-  return table;
 }

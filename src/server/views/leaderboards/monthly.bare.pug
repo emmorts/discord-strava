@@ -1,0 +1,47 @@
+html
+  head
+    link(href='/main.css' rel='stylesheet')
+  body
+    .antialiased.text-gray-600.w-full.max-w-2xl.mx-auto.bg-white.rounded-sm
+      header.px-5.py-4.border-b.border-gray-100
+        h2.font-semibold.text-gray-800= title
+      .p-3
+        .overflow-x-auto
+          table.table-auto.w-full
+            thead.text-xs.font-semibold.uppercase.text-gray-400.bg-gray-50
+              tr
+                th.p-2.whitespace-nowrap
+                  .font-semibold.text-left #
+                th.p-2.whitespace-nowrap
+                  .font-semibold.text-left Athlete
+                th.p-2.whitespace-nowrap
+                  .font-semibold.text-right Distance
+                th.p-2.whitespace-nowrap
+                  .font-semibold.text-right Time
+                th.p-2.whitespace-nowrap
+                  .font-semibold.text-right Elevation Gain
+                th.p-2.whitespace-nowrap
+                  .font-semibold.text-right Pace
+            tbody.text-sm.divide-y.divide-gray-100
+              each aggregate, index in aggregates
+                tr
+                  td.px-2.py-2.whitespace-nowrap
+                    case index 
+                      when 0
+                        img(src="https://static-00.iconduck.com/assets.00/1st-place-medal-emoji-358x512-wkqv4opr.png", width="20", height="20")
+                      when 1
+                        img(src="https://static-00.iconduck.com/assets.00/2nd-place-medal-emoji-358x512-44xn63ir.png", width="20", height="20")
+                      when 2
+                        img(src="https://static-00.iconduck.com/assets.00/3rd-place-medal-emoji-358x512-dvlvdf3f.png", width="20", height="20")
+                      default
+                        .text-center #{index + 1}
+                  td.px-2.py-4.whitespace-nowrap
+                    .font-medium.text-gray-800 #{aggregate.athlete}
+                  td.px-2.py-4.whitespace-nowrap
+                    .text-right #{aggregate.distance}
+                  td.px-2.py-4.whitespace-nowrap
+                    .text-right #{aggregate.time}
+                  td.px-2.py-4.whitespace-nowrap
+                    .text-right #{aggregate.elevationGain}
+                  td.px-2.py-4.whitespace-nowrap
+                    .text-right #{aggregate.pace}
