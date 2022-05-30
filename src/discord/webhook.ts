@@ -18,12 +18,24 @@ export async function sendMessage(athleteAccess: AthleteAccess, activity: Activi
     .addField('Distance', getDistance(activity), true)
     .addField('Time', getTime(activity), true)
     .addField('Pace', getPace(activity), true)
-    .addField('Speed', getSpeed(activity), true)
-    .addField('Heart Rate', getHeartRate(activity), true)
-    .addField('Cadence', getCadence(activity), true)
     .setImage(getStaticMapUrl(activity))
     .setFooter(`${activity.achievement_count} achievements gained`, 'https://static-00.iconduck.com/assets.00/trophy-emoji-512x512-x32hyhlp.png')
     .setTimestamp();
+
+  const speed = getSpeed(activity);
+  if (speed) {
+    message.addField('Speed', getSpeed(activity), true)
+  }
+
+  const heartRate = getHeartRate(activity);
+  if (heartRate) {
+    message.addField('Heart Rate', getHeartRate(activity), true);
+  }
+
+  const cadence = getCadence(activity);
+  if (cadence) {
+    message.addField('Cadence', getCadence(activity), true);
+  }
 
   await webHook.send(message);
 }
@@ -73,7 +85,7 @@ function getTime(activity: Activity) {
 function getPace(activity: Activity) {
   const paceTime = activity.moving_time * 1000 / 60 / activity.distance;
   const paceMinutes = ~~paceTime;
-  const paceSeconds = Math.round(paceTime % 1 * 60);
+  const paceSeconds = ~~(paceTime % 1 * 60);
 
   return `${paceMinutes}:${pad(paceSeconds)} /km`;
 }
@@ -85,17 +97,17 @@ function pad(n: number) {
 function getHeartRate(activity: Activity) {
   return activity.average_heartrate 
     ? `${activity.average_heartrate} bpm`
-    : 'N/A';
+    : null;
 }
 
 function getCadence(activity: Activity) {
   return activity.average_cadence 
     ? `${activity.average_cadence * 2} spm`
-    : 'N/A';
+    : null;
 }
 
 function getSpeed(activity: Activity) {
   return activity 
     ? `${Math.round(activity.average_speed * 3.6 * 100) / 100} km/h`
-    : 'N/A';
+    : null;
 }

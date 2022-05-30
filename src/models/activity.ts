@@ -16,6 +16,7 @@ export interface Activity {
   location_city?: null;
   location_state?: null;
   location_country: string;
+  kilojoules: number;
   achievement_count: number;
   kudos_count: number;
   comment_count: number;

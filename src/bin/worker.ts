@@ -18,12 +18,16 @@ const ALLOWED_ACTIVITY_TYPES = process.env.ALLOWED_ACTIVITY_TYPES?.split(',') ||
 cron.schedule(SCHEDULE, async () => await doWork());
 
 async function doWork() {
-  console.log(`Checking for new activities...`);
-
   const athleteAccesses = await getAllAthleteAccesses();
-  
-  for (let athleteIndex = 0; athleteIndex < athleteAccesses.length; athleteIndex++) {
-    await processAthlete(athleteAccesses[athleteIndex]);
+
+  if (athleteAccesses.length) {
+    console.log(`Checking for new activities...`);
+
+    for (let athleteIndex = 0; athleteIndex < athleteAccesses.length; athleteIndex++) {
+      await processAthlete(athleteAccesses[athleteIndex]);
+    }
+  } else {
+    console.log(`No athletes found.`);
   }
 }
 
@@ -55,7 +59,24 @@ async function processAthleteActivity(athleteAccess: AthleteAccess, activity: Ac
   if (!existingActivity) {
     await saveAthleteActivity({
       athlete_id: athleteAccess.athlete_id,
-      activity_id: activity.id
+      activity_id: activity.id,
+      start_date: activity.start_date,
+      utc_offset: activity.utc_offset,
+      type: activity.type,
+      distance: activity.distance,
+      moving_time: activity.moving_time,
+      elapsed_time: activity.elapsed_time,
+      elev_high: activity.elev_high,
+      elev_low: activity.elev_low,
+      total_elevation_gain: activity.total_elevation_gain,
+      average_speed: activity.average_speed,
+      max_speed: activity.max_speed,
+      average_cadence: activity.average_cadence,
+      has_heartrate: activity.has_heartrate,
+      average_heartrate: activity.average_heartrate,
+      max_heartrate: activity.max_heartrate,
+      kilojoules: activity.kilojoules,
+      achievement_count: activity.achievement_count,
     });
 
     if (!ALLOWED_ACTIVITY_TYPES.length || ALLOWED_ACTIVITY_TYPES.includes(activity.type)) {
@@ -71,7 +92,7 @@ async function processAthleteActivity(athleteAccess: AthleteAccess, activity: Ac
 async function getActivities(athleteAccess: AthleteAccess): Promise<Activity[]> {
   return new Promise((resolve, reject) => {
     const before = ~~(Date.now() / 1000);
-    const after = before - DAY;
+    const after = before - DAY * 7;
   
     strava.athlete.listActivities({
       'access_token': athleteAccess.access_token,

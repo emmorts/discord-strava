@@ -4,32 +4,39 @@
   "description": "",
   "main": "./src/bin/woker",
   "scripts": {
-    "start": "concurrently \"npm run server\" \"npm run worker\"",
+    "start": "concurrently \"npm run server\" \"npm run worker\" \"npm run bot\"",
     "server": "ts-node ./src/bin/www",
     "worker": "ts-node ./src/bin/worker",
-    "start:prod": "concurrently \"npm run server:prod\" \"npm run worker:prod\"",
+    "bot": "ts-node ./src/bin/bot",
+    "start:prod": "concurrently \"npm run server:prod\" \"npm run worker:prod\" \"npm run bot:prod\"",
     "server:prod": "node ./dist/bin/www",
     "worker:prod": "node ./dist/bin/worker",
+    "bot:prod": "node ./dist/bin/bot",
     "build": "tsc"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@discordjs/builders": "^0.13.0",
+    "@discordjs/rest": "^0.4.1",
     "@koa/router": "^10.1.1",
-    "concurrently": "^7.0.0",
+    "concurrently": "^7.2.1",
+    "discord-api-types": "^0.33.1",
     "discord-webhook-node": "^1.1.8",
-    "dotenv": "^16.0.0",
+    "discord.js": "^13.7.0",
+    "dotenv": "^16.0.1",
     "koa": "^2.13.4",
     "node-cron": "^3.0.0",
-    "sqlite3": "^5.0.2",
-    "strava-v3": "^2.1.0"
+    "sqlite3": "^5.0.8",
+    "strava-v3": "^2.1.0",
+    "table": "^6.8.0"
   },
   "devDependencies": {
     "@types/koa": "^2.13.4",
     "@types/koa__router": "^8.0.11",
     "@types/node-cron": "^3.0.1",
     "@types/sqlite3": "^3.1.8",
-    "ts-node": "^10.5.0",
-    "typescript": "^4.6.2"
+    "ts-node": "^10.8.0",
+    "typescript": "^4.7.2"
   }
 }
