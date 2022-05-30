@@ -43,7 +43,7 @@ function toTable(aggregates: MonthlyStatisticsAggregate[]) {
       `${aggregate.athlete_firstname} ${aggregate.athlete_lastname}`,
       `${Math.round(aggregate.total_distance / 1000 * 100) / 100} km`,
       `${Math.round(aggregate.total_moving_time / 36) / 100} h`,
-      `${aggregate.total_elevation_gain} m`,
+      `${Math.round(aggregate.total_elevation_gain * 100) / 100} m`,
     ]);
   }
 
