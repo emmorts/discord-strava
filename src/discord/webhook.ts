@@ -2,6 +2,7 @@ import strava from 'strava-v3';
 import { MessageBuilder, Webhook } from 'discord-webhook-node';
 import { Activity } from '../models/activity';
 import { AthleteAccess } from '../models/athlete-access';
+import { getDistance, getPace, getSpeed, getHeartRate, getCadence, getFormattedTime } from '../util/sport-maths';
 
 const webHook = new Webhook(process.env.DISCORD_WEBHOOK_URL!);
 
@@ -13,28 +14,28 @@ export async function sendMessage(athleteAccess: AthleteAccess, activity: Activi
     .setTitle(`New *${activity.type}* activity!`)
     .setAuthor(`${athleteName}`, athletePhotoUrl, getAthleteUrl(athleteAccess))
     // @ts-ignore
-    .setURL(`https://www.strava.com/activities/${activity.id}`) 
+    .setURL(getActivityUrl(activity)) 
     .setDescription(activity.name)
-    .addField('Distance', getDistance(activity), true)
-    .addField('Time', getTime(activity), true)
-    .addField('Pace', getPace(activity), true)
+    .addField('Distance', getDistance(activity.distance), true)
+    .addField('Time', getFormattedTime(activity.moving_time), true)
+    .addField('Pace', getPace(activity.distance, activity.moving_time), true)
     .setImage(getStaticMapUrl(activity))
     .setFooter(`${activity.achievement_count} achievements gained`, 'https://static-00.iconduck.com/assets.00/trophy-emoji-512x512-x32hyhlp.png')
     .setTimestamp();
 
-  const speed = getSpeed(activity);
+  const speed = getSpeed(activity.average_speed);
   if (speed) {
-    message.addField('Speed', getSpeed(activity), true)
+    message.addField('Speed', speed, true)
   }
 
-  const heartRate = getHeartRate(activity);
+  const heartRate = getHeartRate(activity.average_heartrate);
   if (heartRate) {
-    message.addField('Heart Rate', getHeartRate(activity), true);
+    message.addField('Heart Rate', heartRate, true);
   }
 
-  const cadence = getCadence(activity);
+  const cadence = getCadence(activity.average_cadence);
   if (cadence) {
-    message.addField('Cadence', getCadence(activity), true);
+    message.addField('Cadence', cadence, true);
   }
 
   await webHook.send(message);
@@ -65,49 +66,6 @@ function getAthleteUrl(athleteAccess: AthleteAccess) {
   return `https://www.strava.com/athletes/${athleteAccess.athlete_id}`;
 }
 
-function getDistance(activity: Activity) {
-  return activity 
-    ? `${Math.round(activity.distance / 1000 * 100) / 100} km`
-    : 'N/A';
-}
-
-function getTime(activity: Activity) {
-  const totalTime = activity.moving_time / 60;
-  const totalHours = (~~(totalTime / 60));
-  const totalMinutes = (~~totalTime - totalHours * 60);
-  const totalSeconds = Math.round(totalTime % 1 * 60);
-
-  return totalHours === 0
-    ? `${pad(totalMinutes)}:${pad(totalSeconds)}`
-    : `${pad(totalHours)}:${pad(totalMinutes)}:${pad(totalSeconds)}`;
-}
-
-function getPace(activity: Activity) {
-  const paceTime = activity.moving_time * 1000 / 60 / activity.distance;
-  const paceMinutes = ~~paceTime;
-  const paceSeconds = ~~(paceTime % 1 * 60);
-
-  return `${paceMinutes}:${pad(paceSeconds)} /km`;
-}
-
-function pad(n: number) {
-  return n.toString().padStart(2, '0');
-}
-
-function getHeartRate(activity: Activity) {
-  return activity.average_heartrate 
-    ? `${activity.average_heartrate} bpm`
-    : null;
-}
-
-function getCadence(activity: Activity) {
-  return activity.average_cadence 
-    ? `${activity.average_cadence * 2} spm`
-    : null;
-}
-
-function getSpeed(activity: Activity) {
-  return activity 
-    ? `${Math.round(activity.average_speed * 3.6 * 100) / 100} km/h`
-    : null;
+function getActivityUrl(activity: Activity) {
+  return `https://www.strava.com/activities/${activity.id}`;
 }
