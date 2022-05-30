@@ -27,7 +27,7 @@ export class StatsCommand extends CommandBase {
 
     interaction.reply({
       files: [buffer],
-      content: 'Soad'
+      content: `${DOMAIN}/leaderboards/monthly`
     });
   }
   
