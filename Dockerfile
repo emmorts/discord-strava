@@ -20,6 +20,10 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 ## Puppeteer v13.5.0 works with Chromium 100.
 # RUN npm install puppeteer@13.5.0
 
+WORKDIR /app
+
+COPY ["package.json", "package-lock.json*", "./"]
+
 ## Add user so we don't need --no-sandbox.
 RUN addgroup -S pptruser && adduser -S -G pptruser pptruser \
     && mkdir -p /home/pptruser/Downloads /app \
@@ -31,9 +35,9 @@ USER pptruser
 
 # Setup app
 
-WORKDIR /app
+# WORKDIR /app
 
-COPY ["package.json", "package-lock.json*", "./"]
+# COPY ["package.json", "package-lock.json*", "./"]
 RUN npm install
 
 COPY . .
