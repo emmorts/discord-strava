@@ -20,14 +20,3 @@ CREATE TABLE IF NOT EXISTS athlete_activity (
   kilojoules REAL,
   achievement_count INTEGER
 );
-
-SELECT
-  SUM(act.distance) AS total_distance,
-  SUM(act.moving_time) AS total_moving_time,
-  SUM(act.total_elevation_gain) AS total_elevation_gain,
-  acc.athlete_firstname AS athlete_firstname,
-  acc.athlete_lastname AS athlete_lastname
-FROM athlete_activity act
-INNER JOIN athlete_access acc ON act.athlete_id = acc.athlete_id
-WHERE strftime('%m', act.start_date) = strftime('%m', date('now')) AND type = 'Run'
-GROUP BY act.athlete_id;
