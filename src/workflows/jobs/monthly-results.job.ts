@@ -4,7 +4,7 @@ import { webhookClient } from '../../discord/webhook';
 import { MonthlyStatisticsAggregate } from '../../models/monthly-statistics-aggregate';
 import { getMonthlyStatisticsAggregate } from '../../storage/strava-repository';
 import { getLongMonth } from '../../util/date';
-import { getDistance, getFormattedPace, getTime, round } from '../../util/sport-maths';
+import { getFormattedPace, round } from '../../util/sport-maths';
 import { JobBase } from './job-base';
 import { JobOptions } from './job-options';
 
@@ -15,7 +15,7 @@ export class MonthlyResultsJob extends JobBase {
     return {
       name: 'monthly-results',
       schedule: '0 10 1 * *',
-      immediate: true
+      immediate: false
     };
   }
 
