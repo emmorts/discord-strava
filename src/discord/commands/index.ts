@@ -1,7 +1,9 @@
 import { CommandBase } from "./command-base";
+import { HelpCommand } from "./help.command";
 import { StatsCommand } from "./stats.command";
 
 const commands = [
+  new HelpCommand(),
   new StatsCommand()
 ];
 

@@ -41,7 +41,7 @@ export class MonthlyResultsJob extends JobBase {
 
     const messageEmbed = new MessageEmbed()
       .setTitle(`Results for ${getLongMonth()} are in!`)
-      .setDescription(`As the month of ${getLongMonth()} has just finished, the results for the entire month are in!`)
+      .setDescription(`The month of ${getLongMonth()} concludes! Let's bask in the glory of the month's accomplishments!`)
       .addField('Most distance covered', this.getDistanceMessage(topDistance))
       .addField('Most time spent running', this.getTimeMessage(topTime))
       .addField('Most elevation gain', this.getElevationGainMessage(topElevation))
