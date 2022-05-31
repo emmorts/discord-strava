@@ -10,7 +10,7 @@ export class UpdateAthletePhotoJob extends JobBase {
     return {
       name: 'update-athlete-photo',
       schedule: '0 0 * * *',
-      immediate: true
+      immediate: false
     };
   }
 
