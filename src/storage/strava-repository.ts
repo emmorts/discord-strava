@@ -1,8 +1,9 @@
+import { readdir, readFile } from 'fs/promises';
+import { join } from 'path';
+import { formatISO } from 'date-fns';
 import { AthleteAccess } from '../models/athlete-access';
 import { AthleteActivity } from '../models/athlete-activity';
 import { execute, query, queryAll } from './client';
-import { readdir, readFile } from 'fs/promises';
-import { join } from 'path';
 import { MonthlyStatisticsAggregate } from '../models/monthly-statistics-aggregate';
 
 const MIGRATION_PATH = join(__dirname, 'migrations');
@@ -75,7 +76,7 @@ export async function updateMonthlyAggregate(): Promise<void> {
   `);
 }
 
-export async function getMonthlyStatisticsAggregate(): Promise<MonthlyStatisticsAggregate[]> {
+export async function getMonthlyStatisticsAggregate(date: Date = new Date()): Promise<MonthlyStatisticsAggregate[]> {
   return await queryAll<MonthlyStatisticsAggregate>(`
     SELECT 
       agg.*,
@@ -85,9 +86,11 @@ export async function getMonthlyStatisticsAggregate(): Promise<MonthlyStatistics
     FROM agg_monthly_stats agg
     INNER JOIN athlete_access AS acc ON agg.athlete_id = acc.athlete_id
     WHERE timestamp = (
-      SELECT max(timestamp) FROM agg_monthly_stats
+      SELECT max(timestamp)
+      FROM agg_monthly_stats
+      WHERE date_part('month', timestamp::date) = date_part('month', $1::date)
     );
-  `);
+  `, [ formatISO(date, { representation: 'date' }) ]);
 }
 
 export async function getAthleteActivity(activityId: number): Promise<AthleteActivity> {

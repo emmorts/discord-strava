@@ -9,7 +9,7 @@ export class UpdateAthletePhotoJob extends JobBase {
   get options(): JobOptions {
     return {
       name: 'update-athlete-photo',
-      schedule: '0 0 * * *',
+      schedule: '0 0 */10 * *',
       immediate: false
     };
   }
