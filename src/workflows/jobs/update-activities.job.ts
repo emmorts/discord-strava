@@ -1,5 +1,5 @@
 import strava from 'strava-v3';
-import { sendMessage } from '../../discord/webhook';
+import { sendMessage } from '../../discord/webhook-tbd-rm';
 import { Activity } from '../../models/activity';
 import { AthleteAccess } from '../../models/athlete-access';
 import { getAllAthleteAccesses, getAthleteActivity, saveAthleteAccess, saveAthleteActivity, updateMonthlyAggregate } from '../../storage/strava-repository';
