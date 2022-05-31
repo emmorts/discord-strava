@@ -24,10 +24,6 @@ WORKDIR /app
 
 COPY ["package.json", "package-lock.json*", "./"]
 
-RUN npm install
-
-COPY . .
-
 ## Add user so we don't need --no-sandbox.
 RUN addgroup -S pptruser && adduser -S -G pptruser pptruser \
     && mkdir -p /home/pptruser/Downloads /app \
@@ -42,7 +38,8 @@ USER pptruser
 # WORKDIR /app
 
 # COPY ["package.json", "package-lock.json*", "./"]
+RUN npm install
 
-# COPY . .
+COPY . .
 
 CMD [ "npm", "start" ]
