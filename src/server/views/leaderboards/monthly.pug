@@ -38,7 +38,10 @@ block content
                         default
                           .text-center #{index + 1}
                     td.px-2.py-4.whitespace-nowrap
-                      .font-medium.text-gray-800 #{aggregate.athlete}
+                      .flex.items-center
+                        .w-10.h-10.flex-shrink-0.mr-2(class="sm:mr-3")
+                          img.rounded-full(src=aggregate.athlete.photo, width="40", height="40", alt=aggregate.athlete.name)
+                        .font-medium.text-gray-800 #{aggregate.athlete.name}
                     td.px-2.py-4.whitespace-nowrap
                       .text-right #{aggregate.distance}
                     td.px-2.py-4.whitespace-nowrap

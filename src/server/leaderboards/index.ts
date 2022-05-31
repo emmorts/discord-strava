@@ -55,7 +55,10 @@ async function fetchMonthlyAggregates(leaderboardType: MonthlyLeaderboardType) {
   }
 
   const formattedAggregates = monthlyAggregates.map(agg => ({
-    athlete: agg.athlete_lastname ? `${agg.athlete_firstname} ${agg.athlete_lastname}` : agg.athlete_firstname,
+    athlete: {
+      name: agg.athlete_lastname ? `${agg.athlete_firstname} ${agg.athlete_lastname}` : agg.athlete_firstname,
+      photo: agg.athlete_photo_url
+    },
     distance: getDistance(agg.total_distance) || 'N/A',
     time: getTime(agg.total_moving_time) || 'N/A',
     elevationGain: `${round(agg.total_elevation_gain, 0)} m`,
