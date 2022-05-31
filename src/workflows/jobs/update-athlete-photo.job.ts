@@ -43,6 +43,8 @@ export class UpdateAthletePhotoJob extends JobBase {
     }
 
     await this.updateAthletePhoto(athleteAccess, athlete);
+
+    console.log(`Athlete's ${athleteAccess.athlete_id} photo has been updated`);
   }
 
   private async getAthlete(athleteAccess: AthleteAccess): Promise<Athlete> {
@@ -72,16 +74,19 @@ export class UpdateAthletePhotoJob extends JobBase {
 
   private async refreshToken(athleteAccess: AthleteAccess) {
     if (athleteAccess.expires_at < ~~(Date.now() / 1000)) {
-      const refreshPayload = await strava.oauth.refreshToken(athleteAccess.refresh_token);
+      try {
+        const refreshPayload = await strava.oauth.refreshToken(athleteAccess.refresh_token);
 
-      athleteAccess = {
-        ...athleteAccess,
-        access_token: refreshPayload.access_token,
-        refresh_token: refreshPayload.refresh_token,
-        expires_at: refreshPayload.expires_at
+        athleteAccess.access_token = refreshPayload.access_token;
+        athleteAccess.refresh_token = refreshPayload.refresh_token;
+        athleteAccess.expires_at = refreshPayload.expires_at;
+  
+        await saveAthleteAccess(athleteAccess);
+
+        console.log(`Refresh token for athlete ${athleteAccess.athlete_id} was updated`);
+      } catch (error) {
+        console.log(`Failed to fetch refresh token for athlete ${athleteAccess.athlete_id}: ${error}`);
       }
-
-      await saveAthleteAccess(athleteAccess);
     }
   }
   
