@@ -15,11 +15,14 @@ export function addOAuthRoutes(router: Router) {
     const payload = await strava.oauth.getToken(ctx.query.code as string);
     const existingAthlete = await getAthleteAccess(payload.athlete.id);
 
+    console.log(JSON.stringify(payload))
+
     saveAthleteAccess({
       id: existingAthlete?.id,
       athlete_id: payload.athlete.id,
       athlete_firstname: payload.athlete.firstname,
       athlete_lastname: payload.athlete.lastname,
+      athlete_photo_url: payload.athlete.profile,
       access_token: payload.access_token,
       refresh_token: payload.refresh_token,
       expires_at: payload.expires_at

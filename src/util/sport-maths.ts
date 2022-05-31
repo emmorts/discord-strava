@@ -55,6 +55,20 @@ export function getPace(distance: number | null, seconds: number | null): string
 }
 
 /**
+ * Get a formatted pace expression
+ * @param secondsPerKm Total seconds per kilometer
+ * @returns Formatted pace
+ */
+export function getFormattedPace(secondsPerKm: number | null): string | null {
+  if (!secondsPerKm) return null;
+
+  const paceMinutes = ~~secondsPerKm;
+  const paceSeconds = ~~(secondsPerKm % 1 * 60);
+
+  return `${paceMinutes}:${pad(paceSeconds)} /km`;
+}
+
+/**
  * Get a formatted heart rate expression
  * @param heartRate Average heart rate
  * @returns Average heart rate with units

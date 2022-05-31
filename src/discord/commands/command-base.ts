@@ -1,11 +1,13 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction } from "discord.js";
 
+export type CommandData = Pick<SlashCommandBuilder, 'toJSON'>;
+
 export abstract class CommandBase {
   abstract getName(): string;
   abstract getDescription(): string;
 
-  getData(): SlashCommandBuilder {
+  getData(): CommandData {
     return new SlashCommandBuilder()
       .setName(this.getName())
       .setDescription(this.getDescription());

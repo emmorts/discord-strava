@@ -1,7 +1,7 @@
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import { CommandInteraction, OAuth2Guild } from 'discord.js';
-import { getCommandMap, getCommands } from './commands';
+import { getCommandMap } from './commands';
 
 const API_VERSION = process.env.DISCORD_API_VERSION || '10';
 const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;

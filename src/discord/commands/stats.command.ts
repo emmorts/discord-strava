@@ -1,9 +1,10 @@
 import puppeteer from 'puppeteer';
 import { CommandInteraction, MessageAttachment, MessageEmbed } from 'discord.js';
-import { CommandBase } from './command-base';
-import { getCurrentMonth } from '../../util/date';
+import { CommandBase, CommandData } from './command-base';
+import { getLongMonth } from '../../util/date';
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const DOMAIN = process.env.APP_DOMAIN || 'http://localhost:3000';
+const URL = process.env.APP_URL || 'http://localhost:3000';
 
 export class StatsCommand extends CommandBase {
   getName(): string {
@@ -13,9 +14,27 @@ export class StatsCommand extends CommandBase {
   getDescription(): string {
     return `Get the leaderboard of an ongoing month's activities`;
   }
+  
+  getData(): CommandData {
+    return new SlashCommandBuilder()
+      .setName(this.getName())
+      .setDescription(this.getDescription())
+      .addStringOption(option =>
+        option.setName('type')
+          .setDescription('Type of leaderboard to return')
+          .setRequired(true)
+          .addChoices(
+            { name: 'Distance', value: 'distance' },
+            { name: 'Time', value: 'time' },
+            { name: 'Elevation Gain', value: 'elevation' },
+            { name: 'Pace', value: 'pace' },
+          ));
+  }
 
   async handle(interaction: CommandInteraction): Promise<void> {
-    const leaderboardBuffer = await this.getLeaderboardBuffer();
+    const leaderboardType = interaction.options.getString('type', true);
+
+    const leaderboardBuffer = await this.getLeaderboardBuffer(leaderboardType);
     if (!leaderboardBuffer) {
       interaction.reply(`Failed to fetch leaderboards...`);
 
@@ -26,46 +45,19 @@ export class StatsCommand extends CommandBase {
     const file = new MessageAttachment(leaderboardBuffer, fileName);
 
     const messageEmbed = new MessageEmbed()
-      .setTitle(`Leaderboard for ${getCurrentMonth()}`)
+      .setTitle(`Leaderboard for ${getLongMonth()}`)
       .setImage(`attachment://${fileName}`)
-      .setURL(`${DOMAIN}/leaderboards/monthly`)
+      .setURL(`${URL}/leaderboards/monthly/${leaderboardType}`)
       .setTimestamp();
 
     interaction.reply({
       files: [file],
-      embeds: [messageEmbed]
+      embeds: [messageEmbed],
+      ephemeral: true
     });
-    // const browser = await puppeteer.launch({
-    //   args: ['--disable-dev-shm-usage'],
-    // });
-    // const page = await browser.newPage();
-
-    // await page.goto(`${DOMAIN}/leaderboards/monthly/bare`);
-
-    // await page.waitForSelector('section.antialiased');
-
-    // const element = await page.$('section.antialiased');
-    // if (element) {
-    //   const buffer = await element.screenshot({ omitBackground: true });
-    //   const fileName = 'leaderboard.png';
-    //   const file = new MessageAttachment(buffer, fileName);
-
-    //   const messageEmbed = new MessageEmbed()
-    //     .setTitle(`Leaderboard for ${getCurrentMonth()}`)
-    //     .setImage(`attachment://${fileName}`)
-    //     .setURL(`${DOMAIN}/leaderboards/monthly`)
-    //     .setTimestamp();
-
-    //   interaction.reply({
-    //     files: [file],
-    //     embeds: [messageEmbed]
-    //   });
-    // }
-  
-    // await browser.close();
   }
 
-  private async getLeaderboardBuffer(): Promise<Buffer | null> {
+  private async getLeaderboardBuffer(leaderboardType: string): Promise<Buffer | null> {
     let buffer: Buffer | null = null;
 
     const browser = await puppeteer.launch({
@@ -73,7 +65,7 @@ export class StatsCommand extends CommandBase {
     });
     const page = await browser.newPage();
 
-    await page.goto(`${DOMAIN}/leaderboards/monthly/bare`);
+    await page.goto(`${URL}/leaderboards/monthly/${leaderboardType}/bare`);
     await page.waitForSelector('section.antialiased');
 
     const element = await page.$('section.antialiased');

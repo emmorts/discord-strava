@@ -1,5 +1,5 @@
-export function getCurrentMonth() {
-  const locale = new Intl.DateTimeFormat('en-GB', { month: 'long' });
-  
-  return locale.format(new Date());
+import { format } from 'date-fns';
+
+export function getLongMonth(date: Date = new Date()) {
+  return format(date, 'LLLL');
 }

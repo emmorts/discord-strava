@@ -22,19 +22,69 @@ export async function initializeDatabase() {
   }
 }
 
+export async function updateMonthlyAggregate(): Promise<void> {
+  await execute(`
+    WITH monthly_stats_agg AS (
+      SELECT
+        date('now') AS timestamp,
+        athlete_id,
+        SUM(distance) AS total_distance,
+        SUM(moving_time) AS total_moving_time,
+        SUM(total_elevation_gain) AS total_elevation_gain,
+        AVG((50 * moving_time) / (3 * distance)) AS avg_pace
+      FROM athlete_activity
+      WHERE strftime('%m', start_date) = strftime('%m', date('now')) AND type = 'Run'
+      GROUP BY athlete_id
+    )
+    INSERT INTO agg_monthly_stats(
+      timestamp,
+      athlete_id,
+      total_distance,
+      total_moving_time,
+      total_elevation_gain,
+      avg_pace,
+      distance_rank,
+      time_rank,
+      elevation_rank,
+      pace_rank)
+    SELECT 
+      timestamp,
+      athlete_id,
+      total_distance,
+      total_moving_time,
+      total_elevation_gain,
+      avg_pace,
+      RANK() OVER (ORDER BY total_distance DESC) AS distance_rank,
+      RANK() OVER (ORDER BY total_moving_time DESC) AS time_rank,
+      RANK() OVER (ORDER BY total_elevation_gain DESC) AS elevation_rank,
+      RANK() OVER (ORDER BY avg_pace ASC) AS pace_rank
+    FROM monthly_stats_agg
+    WHERE true
+    ON CONFLICT(timestamp, athlete_id) DO 
+      UPDATE SET
+        total_distance = excluded.total_distance,
+        total_moving_time = excluded.total_moving_time,
+        total_elevation_gain = excluded.total_elevation_gain,
+        avg_pace = excluded.avg_pace,
+        distance_rank = excluded.distance_rank,
+        time_rank = excluded.time_rank,
+        elevation_rank = excluded.elevation_rank,
+        pace_rank = excluded.pace_rank;
+  `);
+}
+
 export async function getMonthlyStatisticsAggregate(): Promise<MonthlyStatisticsAggregate[]> {
   return await queryAll<MonthlyStatisticsAggregate>(`
-    SELECT
-      SUM(act.distance) AS total_distance,
-      SUM(act.moving_time) AS total_moving_time,
-      SUM(act.total_elevation_gain) AS total_elevation_gain,
-      acc.athlete_firstname AS athlete_firstname,
-      acc.athlete_lastname AS athlete_lastname
-    FROM athlete_activity act
-    INNER JOIN athlete_access acc ON act.athlete_id = acc.athlete_id
-    WHERE strftime('%m', act.start_date) = strftime('%m', date('now')) AND type = 'Run'
-    GROUP BY act.athlete_id
-    ORDER BY total_distance DESC;
+    SELECT 
+      agg.*,
+      acc.athlete_firstname,
+      acc.athlete_lastname,
+      acc.athlete_photo_url
+    FROM agg_monthly_stats agg
+    INNER JOIN athlete_access AS acc ON agg.athlete_id = acc.athlete_id
+    WHERE timestamp = (
+      SELECT max(timestamp) FROM agg_monthly_stats
+    );
   `);
 }
 
@@ -121,6 +171,7 @@ export async function saveAthleteAccess(athleteAccess: AthleteAccess) {
     $accessToken: athleteAccess.access_token,
     $athleteFirstname: athleteAccess.athlete_firstname,
     $athleteLastname: athleteAccess.athlete_lastname,
+    $athletePhotoUrl: athleteAccess.athlete_photo_url,
     $refreshToken: athleteAccess.refresh_token,
     $expiresAt: athleteAccess.expires_at
   };
@@ -132,6 +183,7 @@ export async function saveAthleteAccess(athleteAccess: AthleteAccess) {
         access_token = $accessToken,
         athlete_firstname = $athleteFirstname,
         athlete_lastname = $athleteLastname,
+        athlete_photo_url = $athletePhotoUrl,
         refresh_token = $refreshToken,
         expires_at = $expiresAt
       WHERE athlete_id = $athleteId
@@ -140,8 +192,8 @@ export async function saveAthleteAccess(athleteAccess: AthleteAccess) {
     console.log(`Updated athlete access for athlete ${athleteAccess.athlete_id}`);
   } else {
     await execute(`
-      INSERT INTO athlete_access (athlete_id, access_token, athlete_firstname, athlete_lastname, refresh_token, expires_at)
-      VALUES ($athleteId, $accessToken, $athleteFirstname, $athleteLastname, $refreshToken, $expiresAt)
+      INSERT INTO athlete_access (athlete_id, access_token, athlete_firstname, athlete_lastname, athlete_photo_url, refresh_token, expires_at)
+      VALUES ($athleteId, $accessToken, $athleteFirstname, $athleteLastname, $athletePhotoUrl, $refreshToken, $expiresAt)
     `, params);
 
     console.log(`Saved athlete access for athlete ${athleteAccess.athlete_id}`);

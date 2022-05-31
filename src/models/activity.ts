@@ -1,6 +1,6 @@
 export interface Activity {
   resource_state: number;
-  athlete: Athlete;
+  athlete: ActivityAthlete;
   name: string;
   distance: number;
   moving_time: number;
@@ -55,7 +55,7 @@ export interface Activity {
   suffer_score: number;
 }
 
-export interface Athlete {
+export interface ActivityAthlete {
   id: number;
   resource_state: number;
 }
