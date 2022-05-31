@@ -46,6 +46,8 @@ export class MonthlyResultsJob extends JobBase {
       .addField('Most time spent running', this.getTimeMessage(topTime))
       .addField('Most elevation gain', this.getElevationGainMessage(topElevation))
       .addField('Fastest pace', this.getPaceMessage(topPace))
+      .setColor('#eb8514')
+      .setThumbnail('https://i.imgur.com/7erm8RK.png')
       .setURL(`${URL}/leaderboards/monthly/distance`)
       .setTimestamp();
 
@@ -53,19 +55,19 @@ export class MonthlyResultsJob extends JobBase {
   }
 
   private getDistanceMessage(aggregate: MonthlyStatisticsAggregate): string {
-    return `${this.getAthleteName(aggregate)} has covered ${getDistance(aggregate.total_distance)}!`;
+    return `**${this.getAthleteName(aggregate)}** has covered over ${round(aggregate.total_distance / 1000, 0)} kilometers!`;
   }
 
   private getTimeMessage(aggregate: MonthlyStatisticsAggregate): string {
-    return `${this.getAthleteName(aggregate)} has spent ${round(aggregate.total_moving_time / 3600, 0)} hours running!`;
+    return `**${this.getAthleteName(aggregate)}** has spent ${round(aggregate.total_moving_time / 3600, 0)} hours running!`;
   }
 
   private getElevationGainMessage(aggregate: MonthlyStatisticsAggregate): string {
-    return `${this.getAthleteName(aggregate)} has gained ${round(aggregate.total_elevation_gain, 0)} meters of elevation!`;
+    return `**${this.getAthleteName(aggregate)}** has gained ${round(aggregate.total_elevation_gain, 0)} meters of elevation!`;
   }
 
   private getPaceMessage(aggregate: MonthlyStatisticsAggregate): string {
-    return `${this.getAthleteName(aggregate)} has had an average pace of ${getFormattedPace(aggregate.avg_pace)}!`;
+    return `**${this.getAthleteName(aggregate)}** has had an average pace of ${getFormattedPace(aggregate.avg_pace)}!`;
   }
 
   private getAthleteName(aggregate: MonthlyStatisticsAggregate) {
