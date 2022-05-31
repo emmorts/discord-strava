@@ -4,7 +4,7 @@
   "description": "",
   "main": "./src/bin/woker",
   "scripts": {
-    "start": "concurrently \"npm run server\" \"npm run worker\" \"npm run bot\"",
+    "start": "concurrently --restart-after 5000 --restart-tries 5 -n server,worker,bot \"npm run server\" \"npm run worker\" \"npm run bot\"",
     "server": "ts-node ./src/bin/www",
     "worker": "ts-node ./src/bin/worker",
     "bot": "ts-node ./src/bin/bot",
