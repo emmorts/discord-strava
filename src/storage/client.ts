@@ -1,92 +1,65 @@
-import sqlite3 from 'sqlite3';
-import path from 'path';
+import { Pool } from 'pg';
 
-export async function openDatabase(): Promise<sqlite3.Database> {
-  const databasePath = path.join(__dirname, '../../db/strava.db');
+const pool = new Pool({
+  host: process.env.DB_POSTGRESDB_HOST,
+  port: Number(process.env.DB_POSTGRESDB_PORT),
+  database: process.env.DB_POSTGRESDB_DATABASE,
+  user: process.env.DB_POSTGRESDB_USER,
+  password: process.env.DB_POSTGRESDB_PASSWORD
+});
 
-  return new Promise((resolve, reject) => {
-    const database = new sqlite3.Database(databasePath, err => {
-      if (err) {
-        reject(`Failed to open databse in ${databasePath}: ${err}`);
-      } else {
-        resolve(database);
-      }
-    });
-  });
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err);
+
+  process.exit(-1);
+});
+
+export async function query<T>(sql: string, params: any[] = []): Promise<T> {
+  const client = await pool.connect();
+
+  let result: T = null as unknown as T;
+
+  try {
+    const queryResult = await client.query(sql, params);
+    if (queryResult.rowCount > 0) {
+      result = queryResult.rows[0];
+    }
+    
+  } finally {
+    client.release();
+  }
+
+  return result;
 }
 
-export async function closeDatabase(connection: sqlite3.Database) {
-  return new Promise((resolve, reject) => {
-    connection.close(err => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(null);
-      }
-    });
-  });
+export async function queryAll<T>(sql: string, params: any[] = []): Promise<T[]> {
+  const client = await pool.connect();
+
+  let result: T[] = [];
+
+  try {
+    const queryResult = await client.query(sql, params);
+    if (queryResult.rowCount > 0) {
+      result = queryResult.rows;
+    }
+    
+  } finally {
+    client.release();
+  }
+
+  return result;
 }
 
-export async function serialize(connection: sqlite3.Database, callback: () => Promise<void>) {
-  return new Promise((resolve, reject) => {
-    connection.serialize(() => {
-      callback()
-        .then(resolve)
-        .catch(reject);
-    });
-  });
-}
+export async function execute<T>(sql: string, params: any[] = []): Promise<T[]> {
+  const client = await pool.connect();
 
-export async function query<T>(sql: string, params: any = undefined): Promise<T> {
-  return new Promise(async (resolve, reject) => {
-    const connection = await openDatabase();
+  let result: T[] = [];
 
-    connection.serialize(() => {
-      connection.get(sql, params, (err, row) => {
-        if (err) {
-          reject(`error executing query: ${err}`);
-        } else {
-          resolve(row);
-        }
-      });
-    });
+  try {
+    await client.query(sql, params);
+  } finally {
+    client.release();
+  }
 
-    await closeDatabase(connection);
-  });
-}
-
-export async function queryAll<T>(sql: string, params: any = undefined): Promise<T[]> {
-  return new Promise(async (resolve, reject) => {
-    const connection = await openDatabase();
-
-    connection.serialize(() => {
-      connection.all(sql, params, (err, rows) => {
-        if (err) {
-          reject(`error executing queryAll: ${err}`);
-        } else {
-          resolve(rows);
-        }
-      });
-    });
-
-    await closeDatabase(connection);
-  });
-}
-
-export async function execute(sql: string, params: any = undefined): Promise<void> {
-  return new Promise(async (resolve, reject) => {
-    const connection = await openDatabase();
-
-    connection.serialize(() => {
-      connection.run(sql, params, err => {
-        if (err) {
-          reject(`error executing execute: ${err}`);
-        } else {
-          resolve();
-        }
-      });
-    });
-
-    await closeDatabase(connection);
-  });
+  return result;
 }

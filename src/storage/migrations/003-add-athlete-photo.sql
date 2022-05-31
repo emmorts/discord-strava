@@ -1,1 +1,0 @@
-ALTER TABLE athlete_access ADD athlete_photo_url TEXT;

@@ -10,7 +10,7 @@ const MIGRATION_PATH = join(__dirname, 'migrations');
 export async function initializeDatabase() {
   await execute(`
     CREATE TABLE IF NOT EXISTS migrations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       filename TEXT NOT NULL
     );`
   );
@@ -33,7 +33,9 @@ export async function updateMonthlyAggregate(): Promise<void> {
         SUM(total_elevation_gain) AS total_elevation_gain,
         AVG((50 * moving_time) / (3 * distance)) AS avg_pace
       FROM athlete_activity
-      WHERE strftime('%m', start_date) = strftime('%m', date('now')) AND type = 'Run'
+      WHERE type = 'Run'
+        AND date_part('month', start_date::date) = date_part('month', CURRENT_DATE) 
+        AND date_part('year', start_date::date) = date_part('year', CURRENT_DATE)
       GROUP BY athlete_id
     )
     INSERT INTO agg_monthly_stats(
@@ -89,12 +91,12 @@ export async function getMonthlyStatisticsAggregate(): Promise<MonthlyStatistics
 }
 
 export async function getAthleteActivity(activityId: number): Promise<AthleteActivity> {
-  return await query<AthleteActivity>(`SELECT * FROM athlete_activity WHERE activity_id = ?`, [ activityId ]);
+  return await query<AthleteActivity>(`SELECT * FROM athlete_activity WHERE activity_id = $1`, [ activityId ]);
 }
 
 export async function saveAthleteActivity(athleteActivity: AthleteActivity) {
   await execute(`
-    INSERT INTO athlete_activity (
+    INSERT INTO athlete_activity(
       athlete_id, 
       activity_id,
       start_date,
@@ -114,47 +116,27 @@ export async function saveAthleteActivity(athleteActivity: AthleteActivity) {
       max_heartrate,
       kilojoules,
       achievement_count
-    ) VALUES (
-      $athleteId, 
-      $activityId,
-      $startDate,
-      $utcOffset,
-      $type,
-      $distance,
-      $movingTime,
-      $elapsedTime,
-      $elevHigh,
-      $elevLow,
-      $totalElevationGain,
-      $averageSpeed,
-      $maxSpeed,
-      $averageCadence,
-      $hasHeartrate,
-      $averageHeartrate,
-      $maxHeartrate,
-      $kilojoules,
-      $achievementCount
-    )`, {
-    $athleteId: athleteActivity.athlete_id,
-    $activityId: athleteActivity.activity_id,
-    $startDate: athleteActivity.start_date,
-    $utcOffset: athleteActivity.utc_offset,
-    $type: athleteActivity.type,
-    $distance: athleteActivity.distance,
-    $movingTime: athleteActivity.moving_time,
-    $elapsedTime: athleteActivity.elapsed_time,
-    $elevHigh: athleteActivity.elev_high,
-    $elevLow: athleteActivity.elev_low,
-    $totalElevationGain: athleteActivity.total_elevation_gain,
-    $averageSpeed: athleteActivity.average_speed,
-    $maxSpeed: athleteActivity.max_speed,
-    $averageCadence: athleteActivity.average_cadence,
-    $hasHeartrate: athleteActivity.has_heartrate,
-    $averageHeartrate: athleteActivity.average_heartrate,
-    $maxHeartrate: athleteActivity.max_heartrate,
-    $kilojoules: athleteActivity.kilojoules,
-    $achievementCount: athleteActivity.achievement_count
-  });
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19);`, [
+      athleteActivity.athlete_id,
+      athleteActivity.activity_id,
+      athleteActivity.start_date,
+      athleteActivity.utc_offset,
+      athleteActivity.type,
+      athleteActivity.distance,
+      athleteActivity.moving_time,
+      athleteActivity.elapsed_time,
+      athleteActivity.elev_high,
+      athleteActivity.elev_low,
+      athleteActivity.total_elevation_gain,
+      athleteActivity.average_speed,
+      athleteActivity.max_speed,
+      athleteActivity.average_cadence,
+      athleteActivity.has_heartrate,
+      athleteActivity.average_heartrate,
+      athleteActivity.max_heartrate,
+      athleteActivity.kilojoules,
+      athleteActivity.achievement_count
+    ]);
 }
 
 export async function getAthleteAccess(atheleId: number): Promise<AthleteAccess> {
@@ -166,34 +148,34 @@ export async function getAllAthleteAccesses(): Promise<AthleteAccess[]> {
 }
 
 export async function saveAthleteAccess(athleteAccess: AthleteAccess) {
-  const params = {
-    $athleteId: athleteAccess.athlete_id,
-    $accessToken: athleteAccess.access_token,
-    $athleteFirstname: athleteAccess.athlete_firstname,
-    $athleteLastname: athleteAccess.athlete_lastname,
-    $athletePhotoUrl: athleteAccess.athlete_photo_url,
-    $refreshToken: athleteAccess.refresh_token,
-    $expiresAt: athleteAccess.expires_at
-  };
+  const params = [
+    athleteAccess.athlete_id,
+    athleteAccess.access_token,
+    athleteAccess.athlete_firstname,
+    athleteAccess.athlete_lastname,
+    athleteAccess.athlete_photo_url,
+    athleteAccess.refresh_token,
+    athleteAccess.expires_at
+  ];
 
   if (athleteAccess.id) {
     await execute(`
       UPDATE athlete_access
       SET
-        access_token = $accessToken,
-        athlete_firstname = $athleteFirstname,
-        athlete_lastname = $athleteLastname,
-        athlete_photo_url = $athletePhotoUrl,
-        refresh_token = $refreshToken,
-        expires_at = $expiresAt
-      WHERE athlete_id = $athleteId
+        access_token = $2,
+        athlete_firstname = $3,
+        athlete_lastname = $4,
+        athlete_photo_url = $5,
+        refresh_token = $6,
+        expires_at = $7
+      WHERE athlete_id = $1
     `, params);
 
     console.log(`Updated athlete access for athlete ${athleteAccess.athlete_id}`);
   } else {
     await execute(`
       INSERT INTO athlete_access (athlete_id, access_token, athlete_firstname, athlete_lastname, athlete_photo_url, refresh_token, expires_at)
-      VALUES ($athleteId, $accessToken, $athleteFirstname, $athleteLastname, $athletePhotoUrl, $refreshToken, $expiresAt)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
     `, params);
 
     console.log(`Saved athlete access for athlete ${athleteAccess.athlete_id}`);
@@ -234,7 +216,7 @@ async function executeMigration(migrationFilename: string): Promise<void> {
   try {
     await execute(migration);
     
-    await execute(`INSERT INTO migrations (filename) VALUES (?)`, migrationFilename);
+    await execute(`INSERT INTO migrations (filename) VALUES ($1)`, [ migrationFilename ]);
 
     console.log(`Migration '${migrationFilename}' executed successfully`);
   } catch (error) {

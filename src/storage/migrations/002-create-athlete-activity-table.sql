@@ -1,16 +1,16 @@
 CREATE TABLE IF NOT EXISTS athlete_activity (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  athlete_id INTEGER NOT NULL,
-  activity_id INTEGER NOT NULL,
+  id SERIAL PRIMARY KEY,
+  athlete_id BIGINT NOT NULL,
+  activity_id BIGINT NOT NULL,
   start_date TEXT NOT NULL,
-  utc_offset INTEGER NOT NULL,
+  utc_offset INT NOT NULL,
   type TEXT NOT NULL,
   distance REAL,
-  moving_time INTEGER,
-  elapsed_time INTEGER,
+  moving_time INT,
+  elapsed_time INT,
   elev_high REAL,
   elev_low REAL,
-  total_elevation_gain INTEGER,
+  total_elevation_gain INT,
   average_speed REAL,
   max_speed REAL,
   average_cadence REAL,
@@ -18,5 +18,5 @@ CREATE TABLE IF NOT EXISTS athlete_activity (
   average_heartrate REAL,
   max_heartrate REAL,
   kilojoules REAL,
-  achievement_count INTEGER
+  achievement_count INT
 );
