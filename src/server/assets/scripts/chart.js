@@ -7,6 +7,16 @@ window.drawChart = function (config) {
     }
   }
 
+  if (window.leaderboardType === 3) {
+    config.options.scales.y.ticks.precision = 3;
+    config.options.scales.y.ticks.callback = (value) => {
+      const paceMinutes = ~~value;
+      const paceSeconds = ~~(value % 1 * 60);
+    
+      return `${paceMinutes}:${paceSeconds.toString().padStart(2, '0')}`;
+    }
+  }
+
   new Chart(ctx, config);
 }
 

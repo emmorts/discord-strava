@@ -37,6 +37,7 @@ export function addLeaderboardRoutes(router: Router) {
     const chartData = await fetchMonthlyChartData(type, date);
 
     await ctx.render('leaderboards/monthly.chart', {
+      type: type,
       data: JSON.stringify(chartData)
     });
   });
@@ -105,7 +106,6 @@ function getChartConfiguration(
           }
         },
         y: {
-          type: 'linear',
           title: {
             display: true,
             text: valueAxisTitle
@@ -210,12 +210,12 @@ function getType(params: Record<string, string>): MonthlyLeaderboardType {
     case 'distance':
     default:
       return MonthlyLeaderboardType.Distance;
+    case 'time':
+      return MonthlyLeaderboardType.MovingTime;
     case 'elevation':
       return MonthlyLeaderboardType.ElevationGain;
     case 'pace':
       return MonthlyLeaderboardType.Pace;
-    case 'time':
-      return MonthlyLeaderboardType.MovingTime;
   }
 }
 
