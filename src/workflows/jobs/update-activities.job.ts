@@ -50,9 +50,12 @@ export class UpdateActivitiesJob extends JobBase {
 
     for (let i = 0; i < currentAggregate.length; i++) {
       const current = currentAggregate[i];
-      const previous = previousAggregate.find(prev => prev.athlete_id === current.athlete_id);
-      if (!previous) {
-        continue;
+      const previous = previousAggregate.find(prev => prev.athlete_id === current.athlete_id) || {
+        athlete_id: current.athlete_id,
+        distance_rank: Number.MAX_VALUE,
+        time_rank: Number.MAX_VALUE,
+        elevation_rank: Number.MAX_VALUE,
+        pace_rank: Number.MAX_VALUE
       }
 
       const athleteName = this.getAthleteName(current.athlete_firstname, current.athlete_lastname);
@@ -61,40 +64,44 @@ export class UpdateActivitiesJob extends JobBase {
         const place = this.getPlace(current.distance_rank);
         const victims = previousAggregate
           .filter(x => x.distance_rank > current.distance_rank && x.distance_rank <= previous.distance_rank)
-          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname))
-          .join(', ')
-          
-        await webhookClient.send(`${athleteName} has overtaken ${victims} and is now in ${place} place with a total distance of ${getDistance(current.total_distance)}!`);
+          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname));
+        
+        if (victims.length) {
+          await webhookClient.send(`${athleteName} has overtaken ${victims.join(', ')} and is now in ${place} place with a total distance of ${getDistance(current.total_distance)}!`);
+        }
       }
 
       if (current.time_rank < previous.time_rank) {
         const place = this.getPlace(current.time_rank);
         const victims = previousAggregate
           .filter(x => x.time_rank > current.time_rank && x.time_rank <= previous.time_rank)
-          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname))
-          .join(', ')
-          
-        await webhookClient.send(`${athleteName} has overtaken ${victims} and is now in ${place} place with a total moving time of ${getTime(current.total_moving_time)}!`);
+          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname));
+        
+        if (victims.length) {
+          await webhookClient.send(`${athleteName} has overtaken ${victims.join(', ')} and is now in ${place} place with a total moving time of ${getTime(current.total_moving_time)}!`);
+        }
       }
 
       if (current.elevation_rank < previous.elevation_rank) {
         const place = this.getPlace(current.elevation_rank);
         const victims = previousAggregate
           .filter(x => x.elevation_rank > current.elevation_rank && x.elevation_rank <= previous.elevation_rank)
-          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname))
-          .join(', ')
-          
-        await webhookClient.send(`${athleteName} has overtaken ${victims} and is now in ${place} place with a total elevation gain of over ${round(current.total_elevation_gain, 0)} meters!`);
+          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname));
+        
+        if (victims.length) {
+          await webhookClient.send(`${athleteName} has overtaken ${victims.join(', ')} and is now in ${place} place with a total elevation gain of over ${round(current.total_elevation_gain, 0)} meters!`);
+        }
       }
 
       if (current.pace_rank < previous.pace_rank) {
         const place = this.getPlace(current.pace_rank);
         const victims = previousAggregate
           .filter(x => x.pace_rank > current.pace_rank && x.pace_rank <= previous.pace_rank)
-          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname))
-          .join(', ')
-          
-        await webhookClient.send(`${athleteName} has overtaken ${victims} and is now in ${place} place with an average pace of ${getFormattedPace(current.avg_pace)}!`);
+          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname));
+        
+        if (victims.length) {
+          await webhookClient.send(`${athleteName} has overtaken ${victims.join(', ')} and is now in ${place} place with an average pace of ${getFormattedPace(current.avg_pace)}!`);
+        }
       }
     }
   }
