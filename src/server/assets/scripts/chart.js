@@ -37,15 +37,15 @@ function loadAnnotations(data) {
       const closeToLeftBorder = lastDataPointIndex < 5;
       const closeToRightBorder = lastDataPointIndex > (data.labels.length - 4);
       const xAdjust = closeToRightBorder
-        ? -20 : closeToLeftBorder
-        ? 20 : 0;
+        ? -14 : closeToLeftBorder
+        ? 14 : 0;
 
       window.chart.options.plugins.annotation.annotations.push({
         type: 'label',
         drawTime: 'afterDraw',
         content: image,
-        width: 40,
-        height: 40,
+        width: 28,
+        height: 28,
         xAdjust: xAdjust,
         xValue: data.labels[lastDataPointIndex],
         yValue: dataset.data[lastDataPointIndex]
