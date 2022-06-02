@@ -34,6 +34,8 @@ export class StatsCommand extends CommandBase {
   async handle(interaction: CommandInteraction): Promise<void> {
     const leaderboardType = interaction.options.getString('type', true);
 
+    interaction.deferReply();
+
     const leaderboardBuffer = await this.getLeaderboardBuffer(leaderboardType);
     if (!leaderboardBuffer) {
       interaction.reply(`Failed to fetch leaderboards...`);
@@ -82,6 +84,7 @@ export class StatsCommand extends CommandBase {
     const page = await browser.newPage();
 
     await page.goto(`${URL}/leaderboards/monthly/${leaderboardType}/bare`);
+    await page.waitForNetworkIdle({ idleTime: 100 });
     await page.waitForSelector('section.antialiased');
 
     const element = await page.$('section.antialiased');
@@ -103,6 +106,7 @@ export class StatsCommand extends CommandBase {
     const page = await browser.newPage();
 
     await page.goto(`${URL}/leaderboards/monthly/${leaderboardType}/chart`);
+    await page.waitForNetworkIdle({ idleTime: 100 });
     await page.waitForSelector('canvas');
 
     const element = await page.$('canvas');

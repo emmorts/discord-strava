@@ -133,8 +133,10 @@ function getValueAxisTitle(leaderboardType: MonthlyLeaderboardType): string {
 }
 
 function getChartData(leaderboardType: MonthlyLeaderboardType, date: Date, chartItems: MonthlyChartItem[]): ChartData<'line', DefaultDataPoint<'line'>> {
-  const labels = getDaysOfMonth(date);
   const dataSetMap = new Map<number, ChartDataset<'line', DefaultDataPoint<'line'>>>();
+
+  const labels = getDaysOfMonth(date);
+  const currentDateLabelIndex = labels.indexOf(format(new Date(), 'yyyy-MM-dd'));
 
   for (let i = 0; i < chartItems.length; i++) {
     const chartItem = chartItems[i];
@@ -173,12 +175,14 @@ function getChartData(leaderboardType: MonthlyLeaderboardType, date: Date, chart
 
   return {
     labels,
-    datasets: Array.from(dataSetMap.values()).map(postprocessDataset)
+    datasets: Array.from(dataSetMap.values()).map(x => postprocessDataset(x, currentDateLabelIndex))
   }
 }
 
-function postprocessDataset(dataset: ChartDataset<'line', DefaultDataPoint<'line'>>): ChartDataset<'line', DefaultDataPoint<'line'>> {
-  for (let i = 1; i < dataset.data.length; i++) {
+function postprocessDataset(dataset: ChartDataset<'line', DefaultDataPoint<'line'>>, currentDateLabelIndex: number): ChartDataset<'line', DefaultDataPoint<'line'>> {
+  const lastIndex = currentDateLabelIndex === -1 ? dataset.data.length : currentDateLabelIndex;
+
+  for (let i = 1; i < lastIndex; i++) {
     if (dataset.data[i] === null) {
       dataset.data[i] = dataset.data[i - 1];
     }
