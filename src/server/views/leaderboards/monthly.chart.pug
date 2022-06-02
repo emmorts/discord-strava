@@ -1,0 +1,8 @@
+extends ../layout.chart.pug
+
+block content
+  canvas(id="monthly-chart")
+
+  script(src="/scripts/chart.js")
+  script.
+    window.onload = function () { window.drawChart(!{data}) }

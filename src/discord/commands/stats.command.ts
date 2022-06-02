@@ -40,20 +40,34 @@ export class StatsCommand extends CommandBase {
 
       return;
     }
+    const leaderboardAttachmentName = 'leaderboard.png';
+    const leaderboardAttachment = new MessageAttachment(leaderboardBuffer, leaderboardAttachmentName);
 
-    const fileName = 'leaderboard.png';
-    const file = new MessageAttachment(leaderboardBuffer, fileName);
+    const chartBuffer = await this.getChartBuffer(leaderboardType);
+    if (!chartBuffer) {
+      interaction.reply(`Failed to fetch chart...`);
 
-    const messageEmbed = new MessageEmbed()
-      .setTitle(`Leaderboard for ${getLongMonth()}`)
-      .setImage(`attachment://${fileName}`)
+      return;
+    }
+    const chartAttachmentName = 'chart.png';
+    const chartAttachment = new MessageAttachment(leaderboardBuffer, chartAttachmentName);
+
+    const leaderboardEmbed = new MessageEmbed()
+      .setTitle(`Leaderboard of ${leaderboardType} for ${getLongMonth()}`)
+      .setImage(`attachment://${leaderboardAttachmentName}`)
       .setURL(`${URL}/leaderboards/monthly/${leaderboardType}`)
       .setTimestamp();
 
+    const chartEmbed = new MessageEmbed()
+      .setTitle(`Chart of ${leaderboardType} for ${getLongMonth()}`)
+      .setImage(`attachment://${chartAttachmentName}`)
+      .setURL(`${URL}/leaderboards/monthly/${leaderboardType}/chart`)
+      .setTimestamp();
+
     interaction.reply({
-      files: [file],
-      embeds: [messageEmbed],
-      ephemeral: true
+      files: [leaderboardAttachment, chartAttachment],
+      embeds: [leaderboardEmbed, chartEmbed],
+      ephemeral: false
     });
   }
 
@@ -69,6 +83,27 @@ export class StatsCommand extends CommandBase {
     await page.waitForSelector('section.antialiased');
 
     const element = await page.$('section.antialiased');
+    if (element) {
+      buffer = (await element.screenshot({ omitBackground: true })) as Buffer;
+    }
+
+    await browser.close();
+
+    return buffer;
+  }
+
+  private async getChartBuffer(leaderboardType: string): Promise<Buffer | null> {
+    let buffer: Buffer | null = null;
+
+    const browser = await puppeteer.launch({
+      args: ['--disable-dev-shm-usage'],
+    });
+    const page = await browser.newPage();
+
+    await page.goto(`${URL}/leaderboards/monthly/${leaderboardType}/chart`);
+    await page.waitForSelector('canvas');
+
+    const element = await page.$('canvas');
     if (element) {
       buffer = (await element.screenshot({ omitBackground: true })) as Buffer;
     }

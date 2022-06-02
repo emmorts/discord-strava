@@ -5,6 +5,7 @@ import { AthleteAccess } from '../models/athlete-access';
 import { AthleteActivity } from '../models/athlete-activity';
 import { execute, query, queryAll } from './client';
 import { MonthlyStatisticsAggregate } from '../models/monthly-statistics-aggregate';
+import { MonthlyChartItem } from '../models/monthly-chart-item';
 
 const MIGRATION_PATH = join(__dirname, 'migrations');
 
@@ -76,6 +77,78 @@ export async function updateMonthlyAggregate(): Promise<void> {
   `);
 }
 
+export async function getMonthlyDistanceChartItems(date: Date = new Date()): Promise<MonthlyChartItem[]> {
+  return await queryAll<MonthlyChartItem>(`
+      SELECT
+      act.start_date::date AS date,
+      act.athlete_id,
+      aa.athlete_firstname,
+      aa.athlete_lastname,
+      aa.athlete_photo_url,
+      SUM(act.distance) OVER (PARTITION BY act.athlete_id ORDER BY act.start_date) AS running_value
+    FROM athlete_activity act
+    JOIN athlete_access aa ON act.athlete_id = aa.athlete_id
+    WHERE act.type = 'Run' 
+      AND date_part('month', act.start_date::date) = date_part('month', $1::date)
+      AND date_part('year', act.start_date::date) = date_part('year', $1::date)
+    ORDER BY act.start_date
+  `, [ formatISO(date, { representation: 'date' }) ]);
+}
+
+export async function getMonthlyMovingTimeChartItems(date: Date = new Date()): Promise<MonthlyChartItem[]> {
+  return await queryAll<MonthlyChartItem>(`
+      SELECT
+      act.start_date::date AS date,
+      act.athlete_id,
+      aa.athlete_firstname,
+      aa.athlete_lastname,
+      aa.athlete_photo_url,
+      SUM(act.moving_time) OVER (PARTITION BY act.athlete_id ORDER BY act.start_date) AS running_value
+    FROM athlete_activity act
+    JOIN athlete_access aa ON act.athlete_id = aa.athlete_id
+    WHERE act.type = 'Run' 
+      AND date_part('month', act.start_date::date) = date_part('month', $1::date)
+      AND date_part('year', act.start_date::date) = date_part('year', $1::date)
+    ORDER BY act.start_date
+  `, [ formatISO(date, { representation: 'date' }) ]);
+}
+
+export async function getMonthlyElevationGainChartItems(date: Date = new Date()): Promise<MonthlyChartItem[]> {
+  return await queryAll<MonthlyChartItem>(`
+      SELECT
+      act.start_date::date AS date,
+      act.athlete_id,
+      aa.athlete_firstname,
+      aa.athlete_lastname,
+      aa.athlete_photo_url,
+      SUM(act.total_elevation_gain) OVER (PARTITION BY act.athlete_id ORDER BY act.start_date) AS running_value
+    FROM athlete_activity act
+    JOIN athlete_access aa ON act.athlete_id = aa.athlete_id
+    WHERE act.type = 'Run' 
+      AND date_part('month', act.start_date::date) = date_part('month', $1::date)
+      AND date_part('year', act.start_date::date) = date_part('year', $1::date)
+    ORDER BY act.start_date
+  `, [ formatISO(date, { representation: 'date' }) ]);
+}
+
+export async function getMonthlyPaceChartItems(date: Date = new Date()): Promise<MonthlyChartItem[]> {
+  return await queryAll<MonthlyChartItem>(`
+      SELECT
+      act.start_date::date AS date,
+      act.athlete_id,
+      aa.athlete_firstname,
+      aa.athlete_lastname,
+      aa.athlete_photo_url,
+      AVG((50 * moving_time) / (3 * distance)) OVER (PARTITION BY act.athlete_id ORDER BY act.start_date) AS running_value
+    FROM athlete_activity act
+    JOIN athlete_access aa ON act.athlete_id = aa.athlete_id
+    WHERE act.type = 'Run' 
+      AND date_part('month', act.start_date::date) = date_part('month', $1::date)
+      AND date_part('year', act.start_date::date) = date_part('year', $1::date)
+    ORDER BY act.start_date
+  `, [ formatISO(date, { representation: 'date' }) ]);
+}
+
 export async function getMonthlyStatisticsAggregate(date: Date = new Date()): Promise<MonthlyStatisticsAggregate[]> {
   return await queryAll<MonthlyStatisticsAggregate>(`
     SELECT 
@@ -89,6 +162,7 @@ export async function getMonthlyStatisticsAggregate(date: Date = new Date()): Pr
       SELECT max(timestamp)
       FROM agg_monthly_stats
       WHERE date_part('month', timestamp::date) = date_part('month', $1::date)
+        AND date_part('year', timestamp::date) = date_part('year', $1::date)
     );
   `, [ formatISO(date, { representation: 'date' }) ]);
 }
