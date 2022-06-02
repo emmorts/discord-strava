@@ -38,7 +38,7 @@ export class StatsCommand extends CommandBase {
 
     const leaderboardBuffer = await this.getLeaderboardBuffer(leaderboardType);
     if (!leaderboardBuffer) {
-      interaction.reply(`Failed to fetch leaderboards...`);
+      interaction.editReply(`Failed to fetch leaderboards...`);
 
       return;
     }
@@ -47,7 +47,7 @@ export class StatsCommand extends CommandBase {
 
     const chartBuffer = await this.getChartBuffer(leaderboardType);
     if (!chartBuffer) {
-      interaction.reply(`Failed to fetch chart...`);
+      interaction.editReply(`Failed to fetch chart...`);
 
       return;
     }
@@ -68,10 +68,9 @@ export class StatsCommand extends CommandBase {
       .setURL(`${URL}/leaderboards/monthly/${leaderboardType}/chart`)
       .setTimestamp();
 
-    interaction.reply({
+    interaction.editReply({
       files: [leaderboardAttachment, chartAttachment],
-      embeds: [leaderboardEmbed, chartEmbed],
-      ephemeral: false
+      embeds: [leaderboardEmbed, chartEmbed]
     });
   }
 
