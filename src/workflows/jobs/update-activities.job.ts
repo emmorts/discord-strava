@@ -63,7 +63,7 @@ export class UpdateActivitiesJob extends JobBase {
       if (current.distance_rank < previous.distance_rank) {
         const place = this.getPlace(current.distance_rank);
         const victims = previousAggregate
-          .filter(x => x.distance_rank > current.distance_rank && x.distance_rank <= previous.distance_rank)
+          .filter(x => x.athlete_id != current.athlete_id && x.distance_rank <= current.distance_rank)
           .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname));
         
         if (victims.length) {
@@ -74,7 +74,7 @@ export class UpdateActivitiesJob extends JobBase {
       if (current.time_rank < previous.time_rank) {
         const place = this.getPlace(current.time_rank);
         const victims = previousAggregate
-          .filter(x => x.time_rank > current.time_rank && x.time_rank <= previous.time_rank)
+          .filter(x => x.athlete_id != current.athlete_id && x.time_rank <= current.time_rank)
           .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname));
         
         if (victims.length) {
@@ -85,7 +85,7 @@ export class UpdateActivitiesJob extends JobBase {
       if (current.elevation_rank < previous.elevation_rank) {
         const place = this.getPlace(current.elevation_rank);
         const victims = previousAggregate
-          .filter(x => x.elevation_rank > current.elevation_rank && x.elevation_rank <= previous.elevation_rank)
+          .filter(x => x.athlete_id != current.athlete_id && x.elevation_rank <= current.elevation_rank)
           .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname));
         
         if (victims.length) {
@@ -96,7 +96,7 @@ export class UpdateActivitiesJob extends JobBase {
       if (current.pace_rank < previous.pace_rank) {
         const place = this.getPlace(current.pace_rank);
         const victims = previousAggregate
-          .filter(x => x.pace_rank > current.pace_rank && x.pace_rank <= previous.pace_rank)
+          .filter(x => x.athlete_id != current.athlete_id && x.pace_rank <= current.pace_rank)
           .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname));
         
         if (victims.length) {
