@@ -105,7 +105,7 @@ export class StatsCommand extends CommandBase {
     const page = await browser.newPage();
 
     await page.goto(`${URL}/leaderboards/monthly/${leaderboardType}/chart`);
-    await page.waitForNetworkIdle({ idleTime: 100 });
+    await page.waitForNetworkIdle({ idleTime: 500 });
     await page.waitForSelector('canvas');
 
     const element = await page.$('canvas');

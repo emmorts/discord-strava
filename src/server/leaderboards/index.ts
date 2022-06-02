@@ -112,7 +112,8 @@ function getChartConfiguration(
           },
           ticks: {
             precision: 0
-          }
+          },
+          offset: true
         }
       }
     }

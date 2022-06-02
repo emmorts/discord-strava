@@ -1,12 +1,6 @@
 window.drawChart = function (config) {
   const ctx = document.getElementById('monthly-chart').getContext('2d');
 
-  // config.options.plugins = {
-  //   annotation: {
-  //     annotations: getAnnotations(config.data)
-  //   }
-  // }
-
   if (window.leaderboardType === 3) {
     config.options.scales.y.ticks.precision = 3;
     config.options.scales.y.ticks.callback = (value) => {
@@ -23,10 +17,14 @@ window.drawChart = function (config) {
 }
 
 function loadAnnotations(data) {
+  let photosLoaded = 0;
+  
   return data.datasets.map(dataset => {
     const image = document.createElement('img')
     image.src = dataset.imageUrl;
     image.onload = () => {
+      photosLoaded++;
+
       if (!window.chart.options.plugins.annotation.annotations.length) {
         window.chart.options.plugins = {
           annotation: {
@@ -40,7 +38,7 @@ function loadAnnotations(data) {
       const closeToRightBorder = lastDataPointIndex > (data.labels.length - 4);
       const xAdjust = closeToRightBorder
         ? -20 : closeToLeftBorder
-        ? 22 : 0;
+        ? 20 : 0;
 
       window.chart.options.plugins.annotation.annotations.push({
         type: 'label',
@@ -53,9 +51,9 @@ function loadAnnotations(data) {
         yValue: dataset.data[lastDataPointIndex]
       });
 
-      setTimeout(() => {
+      if (photosLoaded === data.datasets.length) {
         window.chart.update()
-      }, 0);
+      }
     }
   });
 }
