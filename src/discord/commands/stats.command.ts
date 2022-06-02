@@ -110,7 +110,7 @@ export class StatsCommand extends CommandBase {
 
     const element = await page.$('canvas');
     if (element) {
-      buffer = (await element.screenshot({ omitBackground: true })) as Buffer;
+      buffer = (await element.screenshot()) as Buffer;
     }
 
     await browser.close();
