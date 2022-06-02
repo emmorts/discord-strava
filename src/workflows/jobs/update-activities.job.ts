@@ -1,8 +1,11 @@
+import { MessageEmbed } from 'discord.js';
 import strava from 'strava-v3';
+import { webhookClient } from '../../discord/webhook';
 import { sendMessage } from '../../discord/webhook-tbd-rm';
 import { Activity } from '../../models/activity';
 import { AthleteAccess } from '../../models/athlete-access';
-import { getAllAthleteAccesses, getAthleteActivity, saveAthleteAccess, saveAthleteActivity, updateMonthlyAggregate } from '../../storage/strava-repository';
+import { getAllAthleteAccesses, getAthleteActivity, getMonthlyStatisticsAggregate, saveAthleteAccess, saveAthleteActivity, updateMonthlyAggregate } from '../../storage/strava-repository';
+import { getCadence, getDistance, getFormattedPace, getFormattedTime, getHeartRate, getPace, getSpeed, getTime, round } from '../../util/sport-maths';
 import { JobBase } from './job-base';
 import { JobOptions } from './job-options';
 
@@ -31,11 +34,73 @@ export class UpdateActivitiesJob extends JobBase {
       }
 
       if (newActivities > 0) {
-        updateMonthlyAggregate();
+        await this.updateAggregates();
       }
     } else {
       console.log(`No athletes found.`);
     }
+  }
+
+  private async updateAggregates() {
+    const previousAggregate = await getMonthlyStatisticsAggregate();
+
+    await updateMonthlyAggregate();
+
+    const currentAggregate = await getMonthlyStatisticsAggregate();
+
+    for (let i = 0; i < currentAggregate.length; i++) {
+      const current = currentAggregate[i];
+      const previous = previousAggregate.find(prev => prev.athlete_id === current.athlete_id);
+      if (!previous) {
+        continue;
+      }
+
+      const athleteName = this.getAthleteName(current.athlete_firstname, current.athlete_lastname);
+
+      if (current.distance_rank < previous.distance_rank) {
+        const place = this.getPlace(current.distance_rank);
+        const victims = previousAggregate
+          .filter(x => x.distance_rank > current.distance_rank && x.distance_rank <= previous.distance_rank)
+          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname))
+          .join(', ')
+          
+        await webhookClient.send(`${athleteName} has overtaken ${victims} and is now in ${place} place with a total distance of ${getDistance(current.total_distance)}!`);
+      }
+
+      if (current.time_rank < previous.time_rank) {
+        const place = this.getPlace(current.time_rank);
+        const victims = previousAggregate
+          .filter(x => x.time_rank > current.time_rank && x.time_rank <= previous.time_rank)
+          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname))
+          .join(', ')
+          
+        await webhookClient.send(`${athleteName} has overtaken ${victims} and is now in ${place} place with a total moving time of ${getTime(current.total_moving_time)}!`);
+      }
+
+      if (current.elevation_rank < previous.elevation_rank) {
+        const place = this.getPlace(current.elevation_rank);
+        const victims = previousAggregate
+          .filter(x => x.elevation_rank > current.elevation_rank && x.elevation_rank <= previous.elevation_rank)
+          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname))
+          .join(', ')
+          
+        await webhookClient.send(`${athleteName} has overtaken ${victims} and is now in ${place} place with a total elevation gain of over ${round(current.total_elevation_gain, 0)} meters!`);
+      }
+
+      if (current.pace_rank < previous.pace_rank) {
+        const place = this.getPlace(current.pace_rank);
+        const victims = previousAggregate
+          .filter(x => x.pace_rank > current.pace_rank && x.pace_rank <= previous.pace_rank)
+          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname))
+          .join(', ')
+          
+        await webhookClient.send(`${athleteName} has overtaken ${victims} and is now in ${place} place with an average pace of ${getFormattedPace(current.avg_pace)}!`);
+      }
+    }
+  }
+
+  private getPlace(place: number) {
+    return place === 1 ? '1st' : place === 2 ? '2nd' : place === 3 ? '3rd' : `${place}th`;
   }
 
   private async processAthlete(athleteAccess: AthleteAccess): Promise<number> {
@@ -91,7 +156,12 @@ export class UpdateActivitiesJob extends JobBase {
       });
 
       if (!ALLOWED_ACTIVITY_TYPES.length || ALLOWED_ACTIVITY_TYPES.includes(activity.type)) {
-        await sendMessage(athleteAccess, activity);
+        // await sendMessage(athleteAccess, activity);
+        const activityMessage = this.generateNewActivityMessage(athleteAccess, activity);
+
+        webhookClient.send({
+          embeds: [activityMessage]
+        });
       }
 
       return true;
@@ -135,6 +205,67 @@ export class UpdateActivitiesJob extends JobBase {
         console.log(`Failed to fetch refresh token for athlete ${athleteAccess.athlete_id}: ${error}`);
       }
     }
+  }
+  
+  private generateNewActivityMessage(athleteAccess: AthleteAccess, activity: Activity): MessageEmbed {
+    const message = new MessageEmbed()
+      .setTitle(`New *${activity.type}* activity!`)
+      .setAuthor({
+        name: this.getAthleteName(athleteAccess.athlete_firstname, athleteAccess.athlete_lastname),
+        iconURL: athleteAccess.athlete_photo_url,
+        url: this.getAthleteUrl(athleteAccess)
+      })
+      .setURL(this.getActivityUrl(activity)) 
+      .setDescription(activity.name)
+      .addField('Distance', getDistance(activity.distance)!, true)
+      .addField('Time', getFormattedTime(activity.moving_time)!, true)
+      .addField('Pace', getPace(activity.distance, activity.moving_time)!, true)
+      .setImage(this.getStaticMapUrl(activity))
+      .setFooter({
+        text: `${activity.achievement_count} achievements gained`,
+        iconURL: 'https://static-00.iconduck.com/assets.00/trophy-emoji-512x512-x32hyhlp.png'
+      })
+      .setTimestamp();
+  
+    const speed = getSpeed(activity.average_speed);
+    if (speed) {
+      message.addField('Speed', speed, true)
+    }
+  
+    const heartRate = getHeartRate(activity.average_heartrate);
+    if (heartRate) {
+      message.addField('Heart Rate', heartRate, true);
+    }
+  
+    const cadence = getCadence(activity.average_cadence);
+    if (cadence) {
+      message.addField('Cadence', cadence, true);
+    }
+  
+    return message;
+  }
+  
+  private getAthleteName(firstname: string, lastname: string | undefined) {
+    return lastname
+      ? `${firstname} ${lastname}`
+      : firstname;
+  }
+  
+  private getStaticMapUrl(activity: Activity) {
+    const host = 'api.mapbox.com';
+    const path = 'styles/v1/mapbox/streets-v11/static'
+    const encodedPolyline = encodeURIComponent(activity.map.summary_polyline);
+    const queryParams = `access_token=${process.env.MAPBOX_API_KEY}`;
+  
+    return `https://${host}/${path}/path-3+f44-0.75(${encodedPolyline})/auto/500x300?${queryParams}`
+  }
+  
+  private getAthleteUrl(athleteAccess: AthleteAccess) {
+    return `https://www.strava.com/athletes/${athleteAccess.athlete_id}`;
+  }
+  
+  private getActivityUrl(activity: Activity) {
+    return `https://www.strava.com/activities/${activity.id}`;
   }
   
 }
