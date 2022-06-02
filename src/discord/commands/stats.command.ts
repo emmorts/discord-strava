@@ -50,16 +50,18 @@ export class StatsCommand extends CommandBase {
       return;
     }
     const chartAttachmentName = 'chart.png';
-    const chartAttachment = new MessageAttachment(leaderboardBuffer, chartAttachmentName);
+    const chartAttachment = new MessageAttachment(chartBuffer, chartAttachmentName);
 
     const leaderboardEmbed = new MessageEmbed()
-      .setTitle(`Leaderboard of ${leaderboardType} for ${getLongMonth()}`)
+      .setTitle(`Leaderboard (${leaderboardType}) for ${getLongMonth()}`)
+      .setDescription(`Here's how the athletes are doing this month`)
       .setImage(`attachment://${leaderboardAttachmentName}`)
       .setURL(`${URL}/leaderboards/monthly/${leaderboardType}`)
       .setTimestamp();
 
     const chartEmbed = new MessageEmbed()
-      .setTitle(`Chart of ${leaderboardType} for ${getLongMonth()}`)
+      .setTitle(`Chart (${leaderboardType}) for ${getLongMonth()}`)
+      .setDescription(`...and here's a neat chart of the leaderboard over time!`)
       .setImage(`attachment://${chartAttachmentName}`)
       .setURL(`${URL}/leaderboards/monthly/${leaderboardType}/chart`)
       .setTimestamp();
