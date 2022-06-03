@@ -1,0 +1,1 @@
+ALTER TABLE athlete_activity ALTER COLUMN total_elevation_gain TYPE DECIMAL(12,4);
