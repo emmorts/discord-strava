@@ -3,6 +3,7 @@ import strava from 'strava-v3';
 import { webhookClient } from '../../discord/webhook';
 import { Activity } from '../../models/activity';
 import { AthleteAccess } from '../../models/athlete-access';
+import { MonthlyStatisticsAggregate } from '../../models/monthly-statistics-aggregate';
 import { getAllAthleteAccesses, getAthleteActivity, getMonthlyStatisticsAggregate, saveAthleteAccess, saveAthleteActivity, updateMonthlyAggregate } from '../../storage/strava-repository';
 import { getCadence, getDistance, getFormattedPace, getFormattedTime, getHeartRate, getPace, getSpeed, getTime, round } from '../../util/sport-maths';
 import { JobBase } from './job-base';
@@ -65,52 +66,40 @@ export class UpdateActivitiesJob extends JobBase {
         time_rank: Number.MAX_VALUE,
         elevation_rank: Number.MAX_VALUE,
         pace_rank: Number.MAX_VALUE
-      }
+      } as MonthlyStatisticsAggregate;
 
-      const athleteName = this.getAthleteName(current.athlete_firstname, current.athlete_lastname);
+      this.notifyRankChange(current, previous, previousAggregate, 'distance_rank', (athlete, victims, place, value) => 
+        `**${athlete}** has overtaken ${victims.map(x => `**${x}**`).join(', ')} and is now in **${place}** place with a total distance of **${getDistance(value)}**!`);
 
-      if (current.distance_rank < previous.distance_rank) {
-        const place = this.getPlace(current.distance_rank);
-        const victims = previousAggregate
-          .filter(x => x.athlete_id != current.athlete_id && x.distance_rank <= current.distance_rank)
-          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname));
-        
-        if (victims.length) {
-          await webhookClient.send(`${athleteName} has overtaken ${victims.join(', ')} and is now in ${place} place with a total distance of ${getDistance(current.total_distance)}!`);
-        }
-      }
+      this.notifyRankChange(current, previous, previousAggregate, 'time_rank', (athlete, victims, place, value) => 
+        `**${athlete}** has overtaken ${victims.map(x => `**${x}**`).join(', ')} and is now in **${place}** place with a total moving time of **${getTime(value)}**!`);
 
-      if (current.time_rank < previous.time_rank) {
-        const place = this.getPlace(current.time_rank);
-        const victims = previousAggregate
-          .filter(x => x.athlete_id != current.athlete_id && x.time_rank <= current.time_rank)
-          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname));
-        
-        if (victims.length) {
-          await webhookClient.send(`${athleteName} has overtaken ${victims.join(', ')} and is now in ${place} place with a total moving time of ${getTime(current.total_moving_time)}!`);
-        }
-      }
+      this.notifyRankChange(current, previous, previousAggregate, 'elevation_rank', (athlete, victims, place, value) => 
+        `**${athlete}** has overtaken ${victims.map(x => `**${x}**`).join(', ')} and is now in **${place}** place with a total elevation gain of over ${round(value, 0)} meters!`);
 
-      if (current.elevation_rank < previous.elevation_rank) {
-        const place = this.getPlace(current.elevation_rank);
-        const victims = previousAggregate
-          .filter(x => x.athlete_id != current.athlete_id && x.elevation_rank <= current.elevation_rank)
-          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname));
-        
-        if (victims.length) {
-          await webhookClient.send(`${athleteName} has overtaken ${victims.join(', ')} and is now in ${place} place with a total elevation gain of over ${round(current.total_elevation_gain, 0)} meters!`);
-        }
-      }
+      this.notifyRankChange(current, previous, previousAggregate, 'pace_rank', (athlete, victims, place, value) => 
+        `**${athlete}** has overtaken ${victims.map(x => `**${x}**`).join(', ')} and is now in **${place}** place with a total pace of ${getFormattedPace(value)}!`);
+    }
+  }
 
-      if (current.pace_rank < previous.pace_rank) {
-        const place = this.getPlace(current.pace_rank);
-        const victims = previousAggregate
-          .filter(x => x.athlete_id != current.athlete_id && x.pace_rank <= current.pace_rank)
-          .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname));
-        
-        if (victims.length) {
-          await webhookClient.send(`${athleteName} has overtaken ${victims.join(', ')} and is now in ${place} place with an average pace of ${getFormattedPace(current.avg_pace)}!`);
-        }
+  private async notifyRankChange(
+    current: MonthlyStatisticsAggregate, 
+    previous: MonthlyStatisticsAggregate,
+    previousAggregates: MonthlyStatisticsAggregate[],
+    rankKey: keyof Pick<MonthlyStatisticsAggregate, 'distance_rank' | 'time_rank' | 'elevation_rank' | 'pace_rank'>,
+    messageFmt: (athleteName: string, victims: string[], currentPlace: string, value: number) => string
+  ): Promise<void> {
+    if (current[rankKey] < previous[rankKey]) {
+      const place = this.getPlace(current[rankKey]);
+      const victims = previousAggregates
+        .filter(x => x.athlete_id != current.athlete_id && current[rankKey] <= x[rankKey])
+        .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname));
+      
+      if (victims.length) {
+        const athleteName = this.getAthleteName(current.athlete_firstname, current.athlete_lastname);
+        const message = messageFmt(athleteName, victims, place, current[rankKey]);
+
+        await webhookClient.send(message);
       }
     }
   }

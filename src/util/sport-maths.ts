@@ -1,3 +1,5 @@
+import { addSeconds, format } from "date-fns";
+
 /**
  * Get distance in kilometers
  * @param distance Total distance in meters
@@ -17,7 +19,7 @@ export function getDistance(distance: number | null): string | null {
 export function getTime(seconds: number | null): string | null {
   if (!seconds) return null;
 
-  return `${round(seconds / 3600)} h`;
+  return format(addSeconds(new Date(0), seconds), `HH 'h' mm 'min'`);
 }
 
 /**
