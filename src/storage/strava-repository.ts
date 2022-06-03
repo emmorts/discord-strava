@@ -172,6 +172,7 @@ export async function getAthleteActivity(activityId: number): Promise<AthleteAct
 }
 
 export async function saveAthleteActivity(athleteActivity: AthleteActivity) {
+  console.log(JSON.stringify(athleteActivity));
   await execute(`
     INSERT INTO athlete_activity(
       athlete_id, 

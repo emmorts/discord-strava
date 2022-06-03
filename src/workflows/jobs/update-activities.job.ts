@@ -172,7 +172,6 @@ export class UpdateActivitiesJob extends JobBase {
       });
 
       if (!ALLOWED_ACTIVITY_TYPES.length || ALLOWED_ACTIVITY_TYPES.includes(activity.type)) {
-        // await sendMessage(athleteAccess, activity);
         const activityMessage = this.generateNewActivityMessage(athleteAccess, activity);
 
         webhookClient.send({
