@@ -29,7 +29,13 @@ export class UpdateActivitiesJob extends JobBase {
       let newActivities = 0;
 
       for (let athleteIndex = 0; athleteIndex < athleteAccesses.length; athleteIndex++) {
-        newActivities += await this.processAthlete(athleteAccesses[athleteIndex]);
+        try {
+          const newAthleteActivities = await this.processAthlete(athleteAccesses[athleteIndex]);
+          console.log(`newAthleteActivities: ${newAthleteActivities}`);
+          newActivities += newAthleteActivities;
+        } catch (error) {
+          console.log(`Failed to process athlete ${athleteAccesses[athleteIndex].athlete_id}: ${error}`);
+        }
       }
 
       if (newActivities > 0) {
