@@ -1,7 +1,6 @@
 import { MessageEmbed } from 'discord.js';
 import strava from 'strava-v3';
 import { webhookClient } from '../../discord/webhook';
-import { sendMessage } from '../../discord/webhook-tbd-rm';
 import { Activity } from '../../models/activity';
 import { AthleteAccess } from '../../models/athlete-access';
 import { getAllAthleteAccesses, getAthleteActivity, getMonthlyStatisticsAggregate, saveAthleteAccess, saveAthleteActivity, updateMonthlyAggregate } from '../../storage/strava-repository';
@@ -34,7 +33,11 @@ export class UpdateActivitiesJob extends JobBase {
       }
 
       if (newActivities > 0) {
+        console.log(`Updating aggregates...`);
+
         await this.updateAggregates();
+      } else {
+        console.log(`No new activities found.`);
       }
     } else {
       console.log(`No athletes found.`);

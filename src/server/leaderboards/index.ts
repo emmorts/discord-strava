@@ -1,6 +1,6 @@
 import Router from '@koa/router';
 import { ChartConfiguration, ChartData, ChartDataset, DefaultDataPoint } from 'chart.js';
-import { parse, add, setDate, isBefore, format } from 'date-fns';
+import { parse, add, setDate, isBefore, format, formatDuration, intervalToDuration, addSeconds } from 'date-fns';
 import { MonthlyChartItem } from '../../models/monthly-chart-item';
 import { sortByDistance, sortByElevationGain, sortByMovingTime, sortByPace } from '../../models/monthly-statistics-aggregate';
 import { getMonthlyDistanceChartItems, getMonthlyElevationGainChartItems, getMonthlyMovingTimeChartItems, getMonthlyPaceChartItems, getMonthlyStatisticsAggregate } from '../../storage/strava-repository';
@@ -149,7 +149,7 @@ function getChartData(leaderboardType: MonthlyLeaderboardType, date: Date, chart
         backgroundColor: getBackgroundColor(i),
         borderColor: getBorderColor(i),
         borderWidth: 1,
-        pointRadius: 1,
+        pointRadius: 2,
         cubicInterpolationMode: 'monotone',
         // @ts-ignore
         imageUrl: chartItem.athlete_photo_url,
@@ -244,7 +244,7 @@ async function fetchMonthlyAggregates(leaderboardType: MonthlyLeaderboardType, d
       photo: agg.athlete_photo_url
     },
     distance: getDistance(agg.total_distance) || 'N/A',
-    time: getTime(agg.total_moving_time) || 'N/A',
+    time: format(addSeconds(new Date(0), agg.total_moving_time), `HH 'h' mm 'min'`) || 'N/A',
     elevationGain: `${round(agg.total_elevation_gain, 0)} m`,
     pace: getFormattedPace(agg.avg_pace) || 'N/A'
   }));

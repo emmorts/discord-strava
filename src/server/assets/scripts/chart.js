@@ -9,6 +9,7 @@ window.drawChart = function (config) {
     
       return `${paceMinutes}:${paceSeconds.toString().padStart(2, '0')}`;
     }
+    config.options.scales.y.reverse = true;
   }
 
   window.chart = new Chart(ctx, config);
