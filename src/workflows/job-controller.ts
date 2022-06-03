@@ -24,6 +24,16 @@ export async function startJobs(): Promise<void> {
       }
     }
 
-    cron.schedule(job.options.schedule, async () => await job.execute());
+    cron.schedule(job.options.schedule, async () => {
+      console.log(`Cron job '${job.options.name}' executing...`);
+
+      try {
+        await job.execute();
+        
+        console.log(`Cron job '${job.options.name}' executed successfully`)
+      } catch (error) {
+        console.log(`Failed to execute cron job '${job.options.name}': ${error}`)
+      }
+    });
   }
 }
