@@ -31,9 +31,7 @@ export class UpdateActivitiesJob extends JobBase {
 
       for (let athleteIndex = 0; athleteIndex < athleteAccesses.length; athleteIndex++) {
         try {
-          const newAthleteActivities = await this.processAthlete(athleteAccesses[athleteIndex]);
-          console.log(`newAthleteActivities: ${newAthleteActivities}`);
-          newActivities += newAthleteActivities;
+          newActivities += await this.processAthlete(athleteAccesses[athleteIndex]);
         } catch (error) {
           console.log(`Failed to process athlete ${athleteAccesses[athleteIndex].athlete_id}: ${error}`);
         }
@@ -69,16 +67,16 @@ export class UpdateActivitiesJob extends JobBase {
       } as MonthlyStatisticsAggregate;
 
       this.notifyRankChange(current, previous, previousAggregate, 'distance_rank', (athlete, victims, place, value) => 
-        `**${athlete}** has overtaken ${victims.map(x => `**${x}**`).join(', ')} and is now in **${place}** place with a total distance of **${getDistance(value)}**!`);
+        `**${athlete}** has overtaken ${victims.map(x => `*${x}*`).join(', ')} and is now in **${place}** place with a total distance of **${getDistance(value)}**!`);
 
       this.notifyRankChange(current, previous, previousAggregate, 'time_rank', (athlete, victims, place, value) => 
-        `**${athlete}** has overtaken ${victims.map(x => `**${x}**`).join(', ')} and is now in **${place}** place with a total moving time of **${getTime(value)}**!`);
+        `**${athlete}** has overtaken ${victims.map(x => `*${x}*`).join(', ')} and is now in **${place}** place with a total moving time of **${getTime(value)}**!`);
 
       this.notifyRankChange(current, previous, previousAggregate, 'elevation_rank', (athlete, victims, place, value) => 
-        `**${athlete}** has overtaken ${victims.map(x => `**${x}**`).join(', ')} and is now in **${place}** place with a total elevation gain of over ${round(value, 0)} meters!`);
+        `**${athlete}** has overtaken ${victims.map(x => `*${x}*`).join(', ')} and is now in **${place}** place with a total elevation gain of over ${round(value, 0)} meters!`);
 
       this.notifyRankChange(current, previous, previousAggregate, 'pace_rank', (athlete, victims, place, value) => 
-        `**${athlete}** has overtaken ${victims.map(x => `**${x}**`).join(', ')} and is now in **${place}** place with a total pace of ${getFormattedPace(value)}!`);
+        `**${athlete}** has overtaken ${victims.map(x => `*${x}*`).join(', ')} and is now in **${place}** place with a total pace of ${getFormattedPace(value)}!`);
     }
   }
 
@@ -97,10 +95,26 @@ export class UpdateActivitiesJob extends JobBase {
       
       if (victims.length) {
         const athleteName = this.getAthleteName(current.athlete_firstname, current.athlete_lastname);
-        const message = messageFmt(athleteName, victims, place, current[rankKey]);
+        const message = messageFmt(athleteName, victims, place, this.getValue(current, rankKey));
 
         await webhookClient.send(message);
       }
+    }
+  }
+
+  private getValue(
+    aggregate: MonthlyStatisticsAggregate,
+    rankKey: keyof Pick<MonthlyStatisticsAggregate, 'distance_rank' | 'time_rank' | 'elevation_rank' | 'pace_rank'>
+  ): number {
+    switch (rankKey) {
+      case 'distance_rank':
+        return aggregate.total_distance;
+      case 'time_rank':
+        return aggregate.total_moving_time;
+      case 'elevation_rank':
+        return aggregate.total_elevation_gain;
+      case 'pace_rank':
+        return aggregate.avg_pace;
     }
   }
 
