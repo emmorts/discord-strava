@@ -1,4 +1,3 @@
-import { getTime } from 'date-fns';
 import { MessageEmbed } from 'discord.js';
 import { AthleteAccess } from "../models/athlete-access";
 import { AthleteActivity } from "../models/athlete-activity";
@@ -10,7 +9,7 @@ import * as AthleteActivityRepository from "../persistence/repositories/athlete-
 import * as MonthlyActivityAggregateRepository from "../persistence/repositories/monthly-activity-aggregate.repository";
 import { MonthlyStatisticsAggregate } from '../models/monthly-statistics-aggregate';
 import { webhookClient } from '../discord/webhook';
-import { getDistance, round, getFormattedPace, getCadence, getFormattedTime, getHeartRate, getPace, getSpeed } from '../util/sport-maths';
+import { getDistance, getTime, round, getFormattedPace, getCadence, getFormattedTime, getHeartRate, getPace, getSpeed } from '../util/sport-maths';
 
 const ALLOWED_ACTIVITY_TYPES = process.env.ALLOWED_ACTIVITY_TYPES?.split(',') || [];
 
