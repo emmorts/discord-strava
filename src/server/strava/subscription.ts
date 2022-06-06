@@ -40,16 +40,34 @@ export function addSubscriptionRoutes(router: Router) {
   });
 
   router.get('/api/strava/event', async ctx => {
-    if (ctx.query && ctx.query['hub.mode'] === 'subscribe' && ctx.query['hub.verify_token'] === process.env.STRAVA_WEBHOOK_VERIFY_TOKEN) {
-      ctx.status = 200;
-      ctx.body = {
-        'hub.challenge': ctx.query['hub.challenge']
-      };
+    if (!ctx.query) {
+      ctx.status = 400;
+
+      ctx.logger.error(`No query parameters provided for Strava subscribtion verification`);
 
       return;
     }
 
-    ctx.status = 400;
+    if (ctx.query['hub.mode'] !== 'subscribe') {
+      ctx.status = 400;
+
+      ctx.logger.error(`Invalid hub.mode provided for Strava subscribtion verification: ${ctx.query['hub.mode']}`);
+
+      return;
+    }
+
+    if (ctx.query['hub.challenge'] !== process.env.STRAVA_WEBHOOK_VERIFY_TOKEN!) {
+      ctx.status = 400;
+
+      ctx.logger.error(`Invalid hub.challenge provided for Strava subscribtion verification: ${ctx.query['hub.challenge']}`);
+
+      return;
+    }
+    
+    ctx.status = 200;
+    ctx.body = {
+      'hub.challenge': ctx.query['hub.challenge']
+    };
   });
 
   router.post('/api/strava/event', koaBody(), async ctx => {

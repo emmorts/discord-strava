@@ -23,6 +23,6 @@ export function useLogger(app: Koa) {
     const start = new Date().getTime();
     await next();
     const ms = new Date().getTime() - start;
-    serverLogger.info(`${ctx.method} ${ctx.url} - ${ms}ms`);
+    serverLogger.info(`${ctx.method} [${ctx.status}] ${ctx.url} - ${ms}ms`);
   });
 }
