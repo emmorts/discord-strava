@@ -1,3 +1,4 @@
+import { Logger } from 'winston';
 import { subDays } from 'date-fns';
 import { MessageEmbed } from 'discord.js';
 import { webhookClient } from '../../discord/webhook';
@@ -19,7 +20,7 @@ export class MonthlyResultsJob extends JobBase {
     };
   }
 
-  async execute(): Promise<void> {
+  async execute(logger: Logger): Promise<void> {
     const yesterday = subDays(new Date(), 1);
     const monthlyAggregates = await getMonthlyStatisticsAggregate(yesterday);
     if (!monthlyAggregates.length) {

@@ -9,9 +9,9 @@
     "worker": "ts-node ./src/bin/worker",
     "bot": "ts-node ./src/bin/bot",
     "postinstall": "shx mkdir -p ./src/server/assets/scripts && shx mkdir -p ./src/server/assets/styles && npm run cp:chartjs && npm run cp:chartjs:adapter && npm run cp:chartjs:annotations",
-    "cp:chartjs": "shx cp ./node_modules/chart.js/dist/chart.min.js ./src/server/assets/scripts/chart.min.js",
-    "cp:chartjs:adapter": "shx cp ./node_modules/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js ./src/server/assets/scripts/chartjs-adapter-date-fns.bundle.min.js",
-    "cp:chartjs:annotations": "shx cp ./node_modules/chartjs-plugin-annotation/dist/chartjs-plugin-annotation.min.js ./src/server/assets/scripts/chartjs-plugin-annotation.min.js",
+    "cp:chartjs": "shx cp ./node_modules/chart.js/dist/chart.min.js ./src/server/assets/scripts/vendor/chart.min.js",
+    "cp:chartjs:adapter": "shx cp ./node_modules/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js ./src/server/assets/scripts/vendor/chartjs-adapter-date-fns.bundle.min.js",
+    "cp:chartjs:annotations": "shx cp ./node_modules/chartjs-plugin-annotation/dist/chartjs-plugin-annotation.min.js ./src/server/assets/scripts/vendor/chartjs-plugin-annotation.min.js",
     "start:dev": "concurrently \"npm run css:dev\" \"npm run server:dev\"",
     "css:dev": "tailwindcss -i ./src/server/styles/main.css -o ./src/server/assets/styles/main.css --watch",
     "server:dev": "nodemon -e ts,js,pug,css --watch ./src/server ./src/bin/www.ts",
@@ -25,8 +25,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@discordjs/builders": "^0.13.0",
-    "@discordjs/rest": "^0.4.1",
+    "@discordjs/builders": "^0.14.0",
+    "@discordjs/rest": "^0.5.0",
     "@koa/router": "^10.1.1",
     "chart.js": "^3.8.0",
     "chartjs-adapter-date-fns": "^2.0.0",
@@ -34,19 +34,20 @@
     "concurrently": "^7.2.1",
     "date-fns": "^2.28.0",
     "discord-api-types": "^0.33.1",
-    "discord-webhook-node": "^1.1.8",
-    "discord.js": "^13.7.0",
+    "discord.js": "^13.8.0",
     "dotenv": "^16.0.1",
     "koa": "^2.13.4",
     "koa-pug": "^5.0.0",
     "koa-static": "^5.0.0",
     "node-cron": "^3.0.0",
     "pg": "^8.7.3",
-    "puppeteer": "^14.1.2",
+    "puppeteer": "^14.2.1",
     "sqlite3": "^5.0.8",
     "strava-v3": "^2.1.0",
     "table": "^6.8.0",
-    "tailwindcss": "^3.0.24"
+    "tailwindcss": "^3.0.24",
+    "winston": "^3.7.2",
+    "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
     "@types/koa": "^2.13.4",
@@ -57,7 +58,7 @@
     "@types/sqlite3": "^3.1.8",
     "nodemon": "^2.0.16",
     "shx": "^0.3.4",
-    "ts-node": "^10.8.0",
-    "typescript": "^4.7.2"
+    "ts-node": "^10.8.1",
+    "typescript": "^4.7.3"
   }
 }

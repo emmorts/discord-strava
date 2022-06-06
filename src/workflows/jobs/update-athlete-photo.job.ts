@@ -1,4 +1,5 @@
 import strava from 'strava-v3';
+import { Logger } from 'winston';
 import { Athlete } from '../../models/athlete';
 import { AthleteAccess } from '../../models/athlete-access';
 import { getAllAthleteAccesses, saveAthleteAccess } from '../../storage/strava-repository';
@@ -14,37 +15,37 @@ export class UpdateAthletePhotoJob extends JobBase {
     };
   }
 
-  async execute(): Promise<void> {
+  async execute(logger: Logger): Promise<void> {
     const athleteAccesses = await getAllAthleteAccesses();
 
     if (athleteAccesses.length) {
-      console.log(`Updating athlete photos...`);
+      logger.info(`Updating athlete photos...`);
 
       for (let athleteIndex = 0; athleteIndex < athleteAccesses.length; athleteIndex++) {
-        await this.processAthlete(athleteAccesses[athleteIndex]);
+        await this.processAthlete(athleteAccesses[athleteIndex], logger);
       }
 
     } else {
-      console.log(`No athletes found.`);
+      logger.info(`No athletes found.`);
     }
   }
 
-  private async processAthlete(athleteAccess: AthleteAccess): Promise<void> {
-    await this.refreshToken(athleteAccess);
+  private async processAthlete(athleteAccess: AthleteAccess, logger: Logger): Promise<void> {
+    await this.refreshToken(athleteAccess, logger);
 
     let athlete = null;
 
     try {
       athlete = await this.getAthlete(athleteAccess);
     } catch (error) {
-      console.log(`Failed to fetch athlete: ${error}`);
+      logger.error(`Failed to fetch athlete: ${error}`);
 
       return;
     }
 
     await this.updateAthletePhoto(athleteAccess, athlete);
 
-    console.log(`Athlete's ${athleteAccess.athlete_id} photo has been updated`);
+    logger.info(`Athlete's ${athleteAccess.athlete_id} photo has been updated`);
   }
 
   private async getAthlete(athleteAccess: AthleteAccess): Promise<Athlete> {
@@ -72,7 +73,7 @@ export class UpdateAthletePhotoJob extends JobBase {
     }
   }
 
-  private async refreshToken(athleteAccess: AthleteAccess) {
+  private async refreshToken(athleteAccess: AthleteAccess, logger: Logger) {
     if (athleteAccess.expires_at < ~~(Date.now() / 1000)) {
       try {
         const refreshPayload = await strava.oauth.refreshToken(athleteAccess.refresh_token);
@@ -83,9 +84,9 @@ export class UpdateAthletePhotoJob extends JobBase {
   
         await saveAthleteAccess(athleteAccess);
 
-        console.log(`Refresh token for athlete ${athleteAccess.athlete_id} was updated`);
+        logger.info(`Refresh token for athlete ${athleteAccess.athlete_id} was updated`);
       } catch (error) {
-        console.log(`Failed to fetch refresh token for athlete ${athleteAccess.athlete_id}: ${error}`);
+        logger.error(`Failed to fetch refresh token for athlete ${athleteAccess.athlete_id}: ${error}`, { error });
       }
     }
   }

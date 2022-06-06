@@ -1,5 +1,6 @@
-import { MessageEmbed } from 'discord.js';
 import strava from 'strava-v3';
+import { Logger } from 'winston';
+import { MessageEmbed } from 'discord.js';
 import { webhookClient } from '../../discord/webhook';
 import { Activity } from '../../models/activity';
 import { AthleteAccess } from '../../models/athlete-access';
@@ -21,31 +22,31 @@ export class UpdateActivitiesJob extends JobBase {
     };
   }
 
-  async execute(): Promise<void> {
+  async execute(logger: Logger): Promise<void> {
     const athleteAccesses = await getAllAthleteAccesses();
 
     if (athleteAccesses.length) {
-      console.log(`Checking for new activities...`);
+      logger.info(`Checking for new activities...`);
 
       let newActivities = 0;
 
       for (let athleteIndex = 0; athleteIndex < athleteAccesses.length; athleteIndex++) {
         try {
-          newActivities += await this.processAthlete(athleteAccesses[athleteIndex]);
+          newActivities += await this.processAthlete(athleteAccesses[athleteIndex], logger);
         } catch (error) {
-          console.log(`Failed to process athlete ${athleteAccesses[athleteIndex].athlete_id}: ${error}`);
+          logger.error(`Failed to process athlete ${athleteAccesses[athleteIndex].athlete_id}: ${error}`, { error });
         }
       }
 
       if (newActivities > 0) {
-        console.log(`Updating aggregates...`);
+        logger.info(`Updating aggregates...`);
 
         await this.updateAggregates();
       } else {
-        console.log(`No new activities found.`);
+        logger.info(`No new activities found.`);
       }
     } else {
-      console.log(`No athletes found.`);
+      logger.info(`No athletes found.`);
     }
   }
 
@@ -122,15 +123,15 @@ export class UpdateActivitiesJob extends JobBase {
     return place === 1 ? '1st' : place === 2 ? '2nd' : place === 3 ? '3rd' : `${place}th`;
   }
 
-  private async processAthlete(athleteAccess: AthleteAccess): Promise<number> {
-    await this.refreshToken(athleteAccess);
+  private async processAthlete(athleteAccess: AthleteAccess, logger: Logger): Promise<number> {
+    await this.refreshToken(athleteAccess, logger);
 
     let activities: Activity[] = [];
 
     try {
       activities = await this.getActivities(athleteAccess);
-    } catch (err) {
-      console.error(JSON.stringify(err));
+    } catch (error) {
+      logger.error(`Failed to fetch activities: ${error}`, { error });
 
       return 0;
     }
@@ -144,7 +145,7 @@ export class UpdateActivitiesJob extends JobBase {
       }
     }
     
-    console.log(`[${athleteAccess.athlete_id}] ${activities.length} recent, ${newActivities} new`);
+    logger.info(`[${athleteAccess.athlete_id}] ${activities.length} recent, ${newActivities} new`);
 
     return newActivities;
   }
@@ -207,7 +208,7 @@ export class UpdateActivitiesJob extends JobBase {
     });
   }
 
-  private async refreshToken(athleteAccess: AthleteAccess) {
+  private async refreshToken(athleteAccess: AthleteAccess, logger: Logger) {
     if (athleteAccess.expires_at < ~~(Date.now() / 1000)) {
       try {
         const refreshPayload = await strava.oauth.refreshToken(athleteAccess.refresh_token);
@@ -218,9 +219,9 @@ export class UpdateActivitiesJob extends JobBase {
   
         await saveAthleteAccess(athleteAccess);
 
-        console.log(`Refresh token for athlete ${athleteAccess.athlete_id} was updated`);
+        logger.info(`Refresh token for athlete ${athleteAccess.athlete_id} was updated`);
       } catch (error) {
-        console.log(`Failed to fetch refresh token for athlete ${athleteAccess.athlete_id}: ${error}`);
+        logger.error(`Failed to fetch refresh token for athlete ${athleteAccess.athlete_id}: ${error}`, { error });
       }
     }
   }

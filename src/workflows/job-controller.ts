@@ -1,10 +1,14 @@
 import cron from 'node-cron';
+import { getWorkerLogger } from '../logging';
+import { formatNs, timeAsync } from '../util/timer-utils';
 import { getJobs } from './jobs';
+
+const logger = getWorkerLogger();
 
 export async function startJobs(): Promise<void> {
   const jobs = getJobs();
   if (!jobs.length) {
-    console.log(`No jobs have been configured.`);
+    logger.warn(`No jobs have been configured.`);
 
     return;
   }
@@ -13,26 +17,26 @@ export async function startJobs(): Promise<void> {
     const job = jobs[i];
 
     if (job.options.immediate) {
-      console.log(`Job '${job.options.name}' is set to immediate execution, executing...`)
+      logger.info(`Job '${job.options.name}' is set to immediate execution, executing...`)
 
       try {
-        await job.execute();
-
-        console.log(`Job '${job.options.name}' executed successfully`)
+        await timeAsync(() => job.execute(logger), (elapsed, result) => {
+          logger.info(`Job '${job.options.name}' executed successfully in ${formatNs(elapsed)}`);
+        });
       } catch (error) {
-        console.log(`Failed to execute job '${job.options.name}': ${error}`)
+        logger.error(`Failed to execute job '${job.options.name}': ${error}`)
       }
     }
 
     cron.schedule(job.options.schedule, async () => {
-      console.log(`Cron job '${job.options.name}' executing...`);
+      logger.info(`Cron job '${job.options.name}' executing...`);
 
       try {
-        await job.execute();
-        
-        console.log(`Cron job '${job.options.name}' executed successfully`)
+        await timeAsync(() => job.execute(logger), (elapsed, result) => {
+          logger.info(`Cron job '${job.options.name}' executed successfully in ${formatNs(elapsed)}`);
+        });
       } catch (error) {
-        console.log(`Failed to execute cron job '${job.options.name}': ${error}`)
+        logger.error(`Failed to execute cron job '${job.options.name}': ${error}`)
       }
     });
   }
