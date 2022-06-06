@@ -14,8 +14,8 @@ export function addSubscriptionRoutes(router: Router) {
         callback_url: process.env.STRAVA_WEBHOOK_CALLBACK_URL!,
         verify_token: process.env.STRAVA_WEBHOOK_VERIFY_TOKEN!,
       });
-    } catch (err) {
-      console.log(err);
+    } catch (error ) {
+      ctx.logger.error(`Failed to create subscribtion: ${error}`, { error });
     }
 
     ctx.status = 200;
@@ -32,8 +32,8 @@ export function addSubscriptionRoutes(router: Router) {
           id: existingSubscriptions[0].id.toString(),
         });
       }
-    } catch (err) {
-      console.log(err);
+    } catch (error ) {
+      ctx.logger.error(`Failed to delete subscribtion: ${error}`, { error });
     }
 
     ctx.status = 200;
