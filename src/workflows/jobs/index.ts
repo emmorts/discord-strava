@@ -4,9 +4,9 @@ import { UpdateActivitiesJob } from "./update-activities.job";
 import { UpdateAthletePhotoJob } from "./update-athlete-photo.job";
 
 const jobs: { new(): JobBase }[] = [
-  // UpdateActivitiesJob,
-  // UpdateAthletePhotoJob,
-  // MonthlyResultsJob
+  UpdateActivitiesJob,
+  UpdateAthletePhotoJob,
+  MonthlyResultsJob
 ];
 
 export function getJobs() {
