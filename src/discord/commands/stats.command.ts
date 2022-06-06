@@ -23,6 +23,9 @@ export class StatsCommand extends CommandBase {
       return;
     }
 
-    await interaction.reply(`This is still a work in progress... you probably wanted \`/leaderboard\` anyway`);
+    await interaction.reply({
+      content: `This is still a work in progress... you probably wanted \`/leaderboard\` anyway`,
+      ephemeral: true
+    });
   }
 }
