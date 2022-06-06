@@ -3,7 +3,7 @@ import { AthleteAccess } from "../models/athlete-access";
 import { AthleteActivity } from "../models/athlete-activity";
 import { MonthlyChartItem } from "../models/monthly-chart-item";
 import { Activity } from '../models/activity';
-import { MonthlyLeaderboardType } from "../server/leaderboards/monthly-leaderboard-type";
+import { MonthlyLeaderboardType } from "../models/monthly-leaderboard-type";
 import * as AthleteAccessRepository from "../persistence/repositories/athlete-access.repository";
 import * as AthleteActivityRepository from "../persistence/repositories/athlete-activity.repository";
 import * as MonthlyActivityAggregateRepository from "../persistence/repositories/monthly-activity-aggregate.repository";
@@ -15,6 +15,12 @@ const ALLOWED_ACTIVITY_TYPES = process.env.ALLOWED_ACTIVITY_TYPES?.split(',') ||
 
 export async function getAthleteAccess(athleteId: number): Promise<AthleteAccess> {
   const athleteAccesses = AthleteAccessRepository.get(athleteId);
+
+  return athleteAccesses;
+}
+
+export async function getAthleteAccessByDiscordId(discordId: string): Promise<AthleteAccess> {
+  const athleteAccesses = AthleteAccessRepository.getByDiscordId(discordId);
 
   return athleteAccesses;
 }

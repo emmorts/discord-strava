@@ -1,3 +1,5 @@
+import { MonthlyLeaderboardType } from './monthly-leaderboard-type';
+
 export interface MonthlyStatisticsAggregate {
   timestamp: string;
   athlete_id: number;
@@ -12,6 +14,19 @@ export interface MonthlyStatisticsAggregate {
   time_rank: number;
   elevation_rank: number;
   pace_rank: number;
+}
+
+export function getSortFnByType(type: MonthlyLeaderboardType) {
+  switch (type) {
+    case MonthlyLeaderboardType.Distance:
+      return sortByDistance;
+    case MonthlyLeaderboardType.MovingTime:
+      return sortByMovingTime;
+    case MonthlyLeaderboardType.ElevationGain:
+      return sortByElevationGain;
+    case MonthlyLeaderboardType.Pace:
+      return sortByPace;
+  }
 }
 
 export function sortByDistance(aggregate: MonthlyStatisticsAggregate, otherAggregate: MonthlyStatisticsAggregate) {

@@ -22,7 +22,7 @@ export function addOAuthRoutes(router: Router) {
       athlete_photo_url: payload.athlete.profile,
       access_token: payload.access_token,
       refresh_token: payload.refresh_token,
-      expires_at: payload.expires_at
+      expires_at: payload.expires_at,
     });
 
     ctx.redirect(`/auth/strava/success`);

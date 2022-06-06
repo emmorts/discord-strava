@@ -1,22 +1,21 @@
 import { CommandBase } from "./command-base";
 import { HelpCommand } from "./help.command";
-import { StatsCommand } from "./stats.command";
+import { StatsCommand } from './stats.command';
+import { LeaderboardCommand } from "./leaderboard.command";
 
-const commands = [
-  new HelpCommand(),
-  new StatsCommand()
+const commands: { new(): CommandBase }[] = [
+  HelpCommand,
+  StatsCommand,
+  LeaderboardCommand,
 ];
 
-export function getCommands(): CommandBase[] {  
-  return commands;
-}
-
 export function getCommandMap(): Map<string, CommandBase> {
-  const commands = getCommands();
   const commandMap = new Map<string, CommandBase>();
 
   for (const command of commands) {
-    commandMap.set(command.getName(), command);
+    const commandInstance = new command();
+    
+    commandMap.set(commandInstance.getName(), commandInstance);
   }
 
   return commandMap;

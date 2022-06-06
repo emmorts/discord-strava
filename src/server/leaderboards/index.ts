@@ -2,19 +2,19 @@ import Router from '@koa/router';
 import { ChartConfiguration, ChartData, ChartDataset, DefaultDataPoint } from 'chart.js';
 import { parse, add, setDate, isBefore, format } from 'date-fns';
 import { MonthlyChartItem } from '../../models/monthly-chart-item';
-import { sortByDistance, sortByElevationGain, sortByMovingTime, sortByPace } from '../../models/monthly-statistics-aggregate';
+import { getSortFnByType } from '../../models/monthly-statistics-aggregate';
 import { getMonthlyDistanceChartItems, getMonthlyMovingTimeChartItems, getMonthlyElevationGainChartItems, getMonthlyPaceChartItems } from '../../persistence/repositories/monthly-activity-aggregate.repository';
 import { getMonthlyStatisticsAggregate } from '../../services/athlete.service';
 import { getBackgroundColor, getBorderColor } from '../../util/chart';
 import { getLongMonth } from '../../util/date';
 import { getDistance, getFormattedPace, getTime, round } from '../../util/sport-maths';
-import { MonthlyLeaderboardType } from './monthly-leaderboard-type';
+import { MonthlyLeaderboardType, MonthlyLeaderboardTypeFmt } from '../../models/monthly-leaderboard-type';
 
 export function addLeaderboardRoutes(router: Router) {
 
   router.get('/leaderboards/monthly/:type', async ctx => {
     const date = getDate(ctx.query);
-    const type = getType(ctx.params);
+    const type = MonthlyLeaderboardTypeFmt.fromSlug(ctx.params.type);
 
     await ctx.render('leaderboards/monthly', {
       title: `Leaderboard for ${getLongMonth(date)}`,
@@ -24,7 +24,7 @@ export function addLeaderboardRoutes(router: Router) {
 
   router.get('/leaderboards/monthly/:type/bare', async ctx => {
     const date = getDate(ctx.query);
-    const type = getType(ctx.params);
+    const type = MonthlyLeaderboardTypeFmt.fromSlug(ctx.params.type);
 
     await ctx.render('leaderboards/monthly.bare', {
       aggregates: await fetchMonthlyAggregates(type, date)
@@ -33,7 +33,7 @@ export function addLeaderboardRoutes(router: Router) {
 
   router.get('/leaderboards/monthly/:type/chart', async ctx => {
     const date = getDate(ctx.query);
-    const type = getType(ctx.params);
+    const type = MonthlyLeaderboardTypeFmt.fromSlug(ctx.params.type);
 
     const chartData = await fetchMonthlyChartData(type, date);
 
@@ -207,37 +207,10 @@ function getDate(query: Record<string, string | string[] | undefined>) {
   return currentDate;
 }
 
-function getType(params: Record<string, string>): MonthlyLeaderboardType {
-  switch (params.type) {
-    case 'distance':
-    default:
-      return MonthlyLeaderboardType.Distance;
-    case 'time':
-      return MonthlyLeaderboardType.MovingTime;
-    case 'elevation':
-      return MonthlyLeaderboardType.ElevationGain;
-    case 'pace':
-      return MonthlyLeaderboardType.Pace;
-  }
-}
-
 async function fetchMonthlyAggregates(leaderboardType: MonthlyLeaderboardType, date: Date) {
   const monthlyAggregates = await getMonthlyStatisticsAggregate(date);
 
-  switch (leaderboardType) {
-    case MonthlyLeaderboardType.Distance:
-      monthlyAggregates.sort(sortByDistance);
-      break;
-    case MonthlyLeaderboardType.MovingTime:
-      monthlyAggregates.sort(sortByMovingTime);
-      break;
-    case MonthlyLeaderboardType.ElevationGain:
-      monthlyAggregates.sort(sortByElevationGain);
-      break;
-    case MonthlyLeaderboardType.Pace:
-      monthlyAggregates.sort(sortByPace);
-      break;
-  }
+  monthlyAggregates.sort(getSortFnByType(leaderboardType));
 
   const formattedAggregates = monthlyAggregates.map(agg => ({
     athlete: {

@@ -12,7 +12,7 @@ export async function startJobs(logger: Logger): Promise<void> {
   }
 
   for (let i = 0; i < jobs.length; i++) {
-    const job = jobs[i];
+    const job = new jobs[i]();
 
     if (job.options.immediate) {
       logger.info(`Job '${job.options.name}' is set to immediate execution, executing...`)

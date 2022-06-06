@@ -1,0 +1,1 @@
+ALTER TABLE athlete_access ADD discord_id TEXT;
