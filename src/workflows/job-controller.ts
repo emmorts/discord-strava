@@ -1,11 +1,9 @@
 import cron from 'node-cron';
-import { getWorkerLogger } from '../logging';
+import { Logger } from 'winston';
 import { formatNs, timeAsync } from '../util/timer-utils';
 import { getJobs } from './jobs';
 
-const logger = getWorkerLogger();
-
-export async function startJobs(): Promise<void> {
+export async function startJobs(logger: Logger): Promise<void> {
   const jobs = getJobs();
   if (!jobs.length) {
     logger.warn(`No jobs have been configured.`);

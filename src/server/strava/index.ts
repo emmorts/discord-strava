@@ -1,7 +1,6 @@
 import Router from '@koa/router';
-
 import { default as strava } from 'strava-v3';
-import { getAthleteAccess, saveAthleteAccess } from '../../storage/strava-repository';
+import { getAthleteAccess, saveAthleteAccess } from '../../services/athlete.service';
 
 export function addOAuthRoutes(router: Router) {
   
@@ -15,9 +14,7 @@ export function addOAuthRoutes(router: Router) {
     const payload = await strava.oauth.getToken(ctx.query.code as string);
     const existingAthlete = await getAthleteAccess(payload.athlete.id);
 
-    console.log(JSON.stringify(payload))
-
-    saveAthleteAccess({
+    await saveAthleteAccess({
       id: existingAthlete?.id,
       athlete_id: payload.athlete.id,
       athlete_firstname: payload.athlete.firstname,

@@ -1,10 +1,10 @@
-import strava from 'strava-v3';
 import { Logger } from 'winston';
 import { Athlete } from '../../models/athlete';
 import { AthleteAccess } from '../../models/athlete-access';
-import { getAllAthleteAccesses, saveAthleteAccess } from '../../storage/strava-repository';
+import { getAllAthleteAccesses, saveAthleteAccess } from '../../services/athlete.service';
 import { JobBase } from './job-base';
 import { JobOptions } from './job-options';
+import StravaService from '../../services/strava.service';
 
 export class UpdateAthletePhotoJob extends JobBase {
   get options(): JobOptions {
@@ -16,13 +16,14 @@ export class UpdateAthletePhotoJob extends JobBase {
   }
 
   async execute(logger: Logger): Promise<void> {
+    const stravaService = new StravaService(logger);
     const athleteAccesses = await getAllAthleteAccesses();
 
     if (athleteAccesses.length) {
       logger.info(`Updating athlete photos...`);
 
       for (let athleteIndex = 0; athleteIndex < athleteAccesses.length; athleteIndex++) {
-        await this.processAthlete(athleteAccesses[athleteIndex], logger);
+        await this.processAthlete(athleteAccesses[athleteIndex], stravaService, logger);
       }
 
     } else {
@@ -30,36 +31,15 @@ export class UpdateAthletePhotoJob extends JobBase {
     }
   }
 
-  private async processAthlete(athleteAccess: AthleteAccess, logger: Logger): Promise<void> {
-    await this.refreshToken(athleteAccess, logger);
-
-    let athlete = null;
-
-    try {
-      athlete = await this.getAthlete(athleteAccess);
-    } catch (error) {
-      logger.error(`Failed to fetch athlete: ${error}`);
-
-      return;
+  private async processAthlete(athleteAccess: AthleteAccess, stravaService: StravaService, logger: Logger): Promise<void> {
+    const athlete = await stravaService.getAthlete(athleteAccess);
+    if (athlete) {
+      await this.updateAthletePhoto(athleteAccess, athlete);
+  
+      logger.info(`Athlete's ${athleteAccess.athlete_id} photo has been updated`);
+    } else {
+      logger.warn(`Athlete ${athleteAccess.athlete_id} not found`);
     }
-
-    await this.updateAthletePhoto(athleteAccess, athlete);
-
-    logger.info(`Athlete's ${athleteAccess.athlete_id} photo has been updated`);
-  }
-
-  private async getAthlete(athleteAccess: AthleteAccess): Promise<Athlete> {
-    return new Promise((resolve, reject) => {
-      strava.athlete.get({
-        'access_token': athleteAccess.access_token
-      }, (err, payload) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(payload);
-        }
-      });
-    });
   }
 
   private async updateAthletePhoto(athleteAccess: AthleteAccess, athlete: Athlete) {
@@ -70,24 +50,6 @@ export class UpdateAthletePhotoJob extends JobBase {
       }
 
       await saveAthleteAccess(athleteAccess);
-    }
-  }
-
-  private async refreshToken(athleteAccess: AthleteAccess, logger: Logger) {
-    if (athleteAccess.expires_at < ~~(Date.now() / 1000)) {
-      try {
-        const refreshPayload = await strava.oauth.refreshToken(athleteAccess.refresh_token);
-
-        athleteAccess.access_token = refreshPayload.access_token;
-        athleteAccess.refresh_token = refreshPayload.refresh_token;
-        athleteAccess.expires_at = refreshPayload.expires_at;
-  
-        await saveAthleteAccess(athleteAccess);
-
-        logger.info(`Refresh token for athlete ${athleteAccess.athlete_id} was updated`);
-      } catch (error) {
-        logger.error(`Failed to fetch refresh token for athlete ${athleteAccess.athlete_id}: ${error}`, { error });
-      }
     }
   }
   

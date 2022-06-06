@@ -1,8 +1,11 @@
 import 'dotenv/config';
-import { initializeDatabase } from '../storage/strava-repository';
+import { getWorkerLogger } from '../logging';
+import { initializeDatabase } from '../persistence/migration-runner';
 import { startJobs } from '../workflows/job-controller';
 
+const logger = getWorkerLogger();
+
 (async function () {
-  await initializeDatabase();
-  await startJobs();
+  await initializeDatabase(logger);
+  await startJobs(logger);
 })();

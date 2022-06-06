@@ -11,7 +11,7 @@ const messageFormat = printf(({ level, message, label, timestamp }) => {
 
 const rollingFileTransport = (name: string) => new DailyRotateFile({
   filename: resolve(LOG_PATH, `${name}-%DATE%.log`),
-  datePattern: 'YYYY-MM-DD-HH',
+  datePattern: 'YYYY-MM-DD',
   zippedArchive: true,
   maxSize: '20m',
   maxFiles: '14d',

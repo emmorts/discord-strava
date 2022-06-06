@@ -3,11 +3,11 @@ import { subDays } from 'date-fns';
 import { MessageEmbed } from 'discord.js';
 import { webhookClient } from '../../discord/webhook';
 import { MonthlyStatisticsAggregate } from '../../models/monthly-statistics-aggregate';
-import { getMonthlyStatisticsAggregate } from '../../storage/strava-repository';
 import { getLongMonth } from '../../util/date';
 import { getFormattedPace, round } from '../../util/sport-maths';
 import { JobBase } from './job-base';
 import { JobOptions } from './job-options';
+import { getMonthlyStatisticsAggregate } from '../../services/athlete.service';
 
 const URL = process.env.APP_URL || 'http://localhost:3000';
 
@@ -29,7 +29,7 @@ export class MonthlyResultsJob extends JobBase {
 
     const message = this.formatMessage(monthlyAggregates);
     
-    webhookClient.send({
+    await webhookClient.send({
       embeds: [message]
     });
   }

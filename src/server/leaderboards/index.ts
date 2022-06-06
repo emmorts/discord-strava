@@ -3,7 +3,8 @@ import { ChartConfiguration, ChartData, ChartDataset, DefaultDataPoint } from 'c
 import { parse, add, setDate, isBefore, format } from 'date-fns';
 import { MonthlyChartItem } from '../../models/monthly-chart-item';
 import { sortByDistance, sortByElevationGain, sortByMovingTime, sortByPace } from '../../models/monthly-statistics-aggregate';
-import { getMonthlyDistanceChartItems, getMonthlyElevationGainChartItems, getMonthlyMovingTimeChartItems, getMonthlyPaceChartItems, getMonthlyStatisticsAggregate } from '../../storage/strava-repository';
+import { getMonthlyDistanceChartItems, getMonthlyMovingTimeChartItems, getMonthlyElevationGainChartItems, getMonthlyPaceChartItems } from '../../persistence/repositories/monthly-activity-aggregate.repository';
+import { getMonthlyStatisticsAggregate } from '../../services/athlete.service';
 import { getBackgroundColor, getBorderColor } from '../../util/chart';
 import { getLongMonth } from '../../util/date';
 import { getDistance, getFormattedPace, getTime, round } from '../../util/sport-maths';
