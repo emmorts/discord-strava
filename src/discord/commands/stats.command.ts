@@ -1,8 +1,9 @@
 import puppeteer from 'puppeteer';
-import { CommandInteraction, MessageAttachment, MessageEmbed } from 'discord.js';
+import { CommandInteraction, MessageAttachment, MessageEmbed, MessagePayload, WebhookEditMessageOptions } from 'discord.js';
 import { CommandBase, CommandData } from './command-base';
 import { getLongMonth } from '../../util/date';
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { Logger } from 'winston';
 
 const URL = process.env.APP_URL || 'http://localhost:3000';
 
@@ -31,29 +32,28 @@ export class StatsCommand extends CommandBase {
           ));
   }
 
-  async handle(interaction: CommandInteraction): Promise<void> {
+  async handle(interaction: CommandInteraction, logger: Logger): Promise<void> {
     const leaderboardType = interaction.options.getString('type', true);
 
     interaction.deferReply();
 
-    const leaderboardBuffer = await this.getLeaderboardBuffer(leaderboardType);
-    if (!leaderboardBuffer) {
-      interaction.editReply(`Failed to fetch leaderboards...`);
+    const buffers = await this.getLeaderboardBuffers(leaderboardType, logger);
+    if (buffers.chart && buffers.leaderboard) {
+      const [leaderboardAttachment, leaderboardEmbed] = await this.getLeaderboard(buffers.leaderboard, leaderboardType, logger);
+      const [chartAttachment, chartEmbed] = await this.getChart(buffers.chart, leaderboardType, logger);
 
-      return;
+      await interaction.editReply({
+        files: [leaderboardAttachment, chartAttachment],
+        embeds: [leaderboardEmbed, chartEmbed]
+      });
+    } else {
+      await interaction.editReply(`Failed to load leaderboard`);
     }
+  }
+
+  private async getLeaderboard(buffer: Buffer, leaderboardType: string, logger: Logger): Promise<[MessageAttachment, MessageEmbed]> {
     const leaderboardAttachmentName = 'leaderboard.png';
-    const leaderboardAttachment = new MessageAttachment(leaderboardBuffer, leaderboardAttachmentName);
-
-    const chartBuffer = await this.getChartBuffer(leaderboardType);
-    if (!chartBuffer) {
-      interaction.editReply(`Failed to fetch chart...`);
-
-      return;
-    }
-    const chartAttachmentName = 'chart.png';
-    const chartAttachment = new MessageAttachment(chartBuffer, chartAttachmentName);
-
+    const leaderboardAttachment = new MessageAttachment(buffer, leaderboardAttachmentName);
     const leaderboardEmbed = new MessageEmbed()
       .setTitle(`Leaderboard (${leaderboardType}) for ${getLongMonth()}`)
       .setDescription(`Here's how the athletes are doing this month`)
@@ -61,6 +61,12 @@ export class StatsCommand extends CommandBase {
       .setURL(`${URL}/leaderboards/monthly/${leaderboardType}`)
       .setTimestamp();
 
+    return [leaderboardAttachment, leaderboardEmbed];
+  }
+
+  private async getChart(buffer: Buffer, leaderboardType: string, logger: Logger): Promise<[MessageAttachment, MessageEmbed]> {
+    const chartAttachmentName = 'chart.png';
+    const chartAttachment = new MessageAttachment(buffer, chartAttachmentName);
     const chartEmbed = new MessageEmbed()
       .setTitle(`Chart (${leaderboardType}) for ${getLongMonth()}`)
       .setDescription(`...and here's a neat chart of the leaderboard over time!`)
@@ -68,54 +74,94 @@ export class StatsCommand extends CommandBase {
       .setURL(`${URL}/leaderboards/monthly/${leaderboardType}/chart`)
       .setTimestamp();
 
-    interaction.editReply({
-      files: [leaderboardAttachment, chartAttachment],
-      embeds: [leaderboardEmbed, chartEmbed]
-    });
+    return [chartAttachment, chartEmbed];
   }
 
-  private async getLeaderboardBuffer(leaderboardType: string): Promise<Buffer | null> {
-    let buffer: Buffer | null = null;
+  private async getLeaderboardBuffers(leaderboardType: string, logger: Logger): Promise<{ leaderboard?: Buffer, chart?: Buffer }> {
+    const buffers: { leaderboard?: Buffer, chart?: Buffer } = {};
 
-    const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-dev-shm-usage'],
-    });
-    const page = await browser.newPage();
-
-    await page.goto(`${URL}/leaderboards/monthly/${leaderboardType}/bare`);
-    await page.waitForNetworkIdle({ idleTime: 100 });
-    await page.waitForSelector('section.antialiased');
-
-    const element = await page.$('section.antialiased');
-    if (element) {
-      buffer = (await element.screenshot({ omitBackground: true })) as Buffer;
+    try {
+      const browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+      });
+      const page = await browser.newPage();
+  
+      await page.goto(`${URL}/leaderboards/monthly/${leaderboardType}/bare`);
+      await page.waitForNetworkIdle({ idleTime: 100 });
+      await page.waitForSelector('section.antialiased');
+  
+      const leaderboardElement = await page.$('section.antialiased');
+      if (leaderboardElement) {
+        buffers.leaderboard = (await leaderboardElement.screenshot({ omitBackground: true })) as Buffer;
+      }
+  
+      await page.goto(`${URL}/leaderboards/monthly/${leaderboardType}/chart`);
+      await page.waitForNetworkIdle({ idleTime: 300 });
+      await page.waitForSelector('canvas');
+  
+      const element = await page.$('canvas');
+      if (element) {
+        buffers.chart = (await element.screenshot()) as Buffer;
+      }
+  
+      await browser.close();
+    } catch (error) {
+      logger.error(`Failed to get leaderboard buffers: ${error}`, { error });
     }
 
-    await browser.close();
-
-    return buffer;
+    return buffers;
   }
 
-  private async getChartBuffer(leaderboardType: string): Promise<Buffer | null> {
-    let buffer: Buffer | null = null;
+  // private async getLeaderboardBuffer(leaderboardType: string, logger: Logger): Promise<Buffer | null> {
+  //   let buffer: Buffer | null = null;
 
-    const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-dev-shm-usage'],
-    });
-    const page = await browser.newPage();
+  //   try {
+  //     const browser = await puppeteer.launch({
+  //       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+  //     });
+  //     const page = await browser.newPage();
+  
+  //     await page.goto(`${URL}/leaderboards/monthly/${leaderboardType}/bare`);
+  //     await page.waitForNetworkIdle({ idleTime: 100 });
+  //     await page.waitForSelector('section.antialiased');
+  
+  //     const element = await page.$('section.antialiased');
+  //     if (element) {
+  //       buffer = (await element.screenshot({ omitBackground: true })) as Buffer;
+  //     }
+  
+  //     await browser.close();
+  //   } catch (error) {
+  //     logger.error(`Failed to get leaderboard buffer: ${error}`, { error });
+  //   }
 
-    await page.goto(`${URL}/leaderboards/monthly/${leaderboardType}/chart`);
-    await page.waitForNetworkIdle({ idleTime: 500 });
-    await page.waitForSelector('canvas');
+  //   return buffer;
+  // }
 
-    const element = await page.$('canvas');
-    if (element) {
-      buffer = (await element.screenshot()) as Buffer;
-    }
+  // private async getChartBuffer(leaderboardType: string, logger: Logger): Promise<Buffer | null> {
+  //   let buffer: Buffer | null = null;
 
-    await browser.close();
+  //   try {
+  //     const browser = await puppeteer.launch({
+  //       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+  //     });
+  //     const page = await browser.newPage();
+  
+  //     await page.goto(`${URL}/leaderboards/monthly/${leaderboardType}/chart`);
+  //     await page.waitForNetworkIdle({ idleTime: 500 });
+  //     await page.waitForSelector('canvas');
+  
+  //     const element = await page.$('canvas');
+  //     if (element) {
+  //       buffer = (await element.screenshot()) as Buffer;
+  //     }
+  
+  //     await browser.close();
+  //   } catch (error) {
+  //     logger.error(`Failed to get leaderboard buffer: ${error}`, { error });
+  //   }
 
-    return buffer;
-  }
+  //   return buffer;
+  // }
   
 }

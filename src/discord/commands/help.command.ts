@@ -1,4 +1,5 @@
-import { CommandInteraction, CacheType } from "discord.js";
+import { CommandInteraction } from "discord.js";
+import { Logger } from "winston";
 import { CommandBase } from "./command-base";
 
 export class HelpCommand extends CommandBase {
@@ -10,7 +11,7 @@ export class HelpCommand extends CommandBase {
     return `Get a list of possible commands`;
   }
   
-  async handle(interaction: CommandInteraction<CacheType>): Promise<void> {
+  async handle(interaction: CommandInteraction, logger: Logger): Promise<void> {
     await interaction.reply(`
 The following commands are available:
 \`/help\` - Get a list of possible commands

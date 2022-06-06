@@ -27,11 +27,11 @@ export async function registerGuildCommands(guild: OAuth2Guild) {
   const commands = Array.from(commandMap.values()).map(command => command.getData().toJSON());
 
 	try {
-		logger.info(`Started refreshing application (/) commands on guild '${guild.name}'.`);
+		logger.info(`Started refreshing application (/) commands on guild '${guild.name}'`);
 
-		await rest.put(Routes.applicationGuildCommands(CLIENT_ID, guild.id), { body: commands });
-
-		logger.info(`Successfully reloaded application (/) commands on guild '${guild.name}'.`);
+    await timeAsync(() => rest.put(Routes.applicationGuildCommands(CLIENT_ID, guild.id), { body: commands }), (elapsed) => {
+  		logger.info(`Successfully reloaded application (/) commands on guild '${guild.name}' in ${formatNs(elapsed)}`);
+    });
 	} catch (error) {
 		logger.error(`Failed to register commands on guild '${guild.name}': ${error}`, { error });
 	}
@@ -50,11 +50,13 @@ export async function handleCommand(interaction: CommandInteraction) {
       logger.info(`Command '${interaction.commandName}' is handling the interaction.`);
 
       try {
-        await timeAsync(() => command.handle(interaction), (elapsed, result) => {
+        await timeAsync(() => command.handle(interaction, logger), (elapsed) => {
           logger.info(`Command '${interaction.commandName}' handled the interaction in ${formatNs(elapsed)}`);
         });
       } catch (error) {
         logger.error(`Failed to handle command '${interaction.commandName}': ${error}`, { error });
+
+        await interaction.reply(`Failed to execute \`${interaction.commandName}\`, try again later`)
       }
     }
   }
