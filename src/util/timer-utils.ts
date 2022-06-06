@@ -12,9 +12,10 @@ export async function timeAsync<T>(fn: () => Promise<T>, callback: (elapsed: big
   return result;
 }
 
-export function formatNs<Num extends bigint | number>(ns: Num) {
-  const seconds = Math.floor(ns / 1e9);
-  const ms = Math.floor((ns % 1e9) / 1e6);
+export function formatNs(ns: bigint) {
+  const nanosecond = BigInt(1e9);
+  const seconds = Math.floor(Number(ns / nanosecond));
+  const ms = Math.floor(Number(ns % nanosecond) / 1e6);
 
   return `${seconds}.${ms} s`;
 }
