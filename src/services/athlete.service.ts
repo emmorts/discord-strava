@@ -202,9 +202,9 @@ function getMessageFunction(type: MonthlyLeaderboardType): (athleteName: string,
     case MonthlyLeaderboardType.MovingTime:
       return (athlete, victims, place, value) => `**${athlete}** has overtaken ${victims.map(x => `*${x}*`).join(', ')} and is now in **${place}** place with a total moving time of **${getTime(value)}**!`;
     case MonthlyLeaderboardType.ElevationGain:
-      return (athlete, victims, place, value) => `**${athlete}** has overtaken ${victims.map(x => `*${x}*`).join(', ')} and is now in **${place}** place with a total elevation gain of over ${round(value, 0)} meters!`;
+      return (athlete, victims, place, value) => `**${athlete}** has overtaken ${victims.map(x => `*${x}*`).join(', ')} and is now in **${place}** place with a total elevation gain of over **${round(value, 0)} meters**!`;
     case MonthlyLeaderboardType.Pace:
-      return (athlete, victims, place, value) => `**${athlete}** has overtaken ${victims.map(x => `*${x}*`).join(', ')} and is now in **${place}** place with a total pace of ${getFormattedPace(value)}!`;
+      return (athlete, victims, place, value) => `**${athlete}** has overtaken ${victims.map(x => `*${x}*`).join(', ')} and is now in **${place}** place with a total pace of **${getFormattedPace(value)}**!`;
   }
 }
 
