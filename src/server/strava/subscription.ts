@@ -56,14 +56,14 @@ export function addSubscriptionRoutes(router: Router) {
       return;
     }
 
-    if (ctx.query['hub.challenge'] !== process.env.STRAVA_WEBHOOK_VERIFY_TOKEN!) {
+    if (ctx.query['hub.verify_token'] !== process.env.STRAVA_WEBHOOK_VERIFY_TOKEN!) {
       ctx.status = 400;
 
-      ctx.logger.error(`Invalid hub.challenge provided for Strava subscribtion verification: ${ctx.query['hub.challenge']}`);
+      ctx.logger.error(`Invalid hub.verify_token provided for Strava subscribtion verification: ${ctx.query['hub.verify_token']}`);
 
       return;
     }
-    
+
     ctx.status = 200;
     ctx.body = {
       'hub.challenge': ctx.query['hub.challenge']
