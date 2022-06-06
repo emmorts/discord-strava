@@ -23,6 +23,6 @@ export class StatsCommand extends CommandBase {
       return;
     }
 
-    await interaction.reply(`Your Strava stats... one day`);
+    await interaction.reply(`This is still a work in progress... you probably wanted \`/leaderboard\` anyway`);
   }
 }

@@ -15,7 +15,8 @@ export class HelpCommand extends CommandBase {
     await interaction.reply(`
 The following commands are available:
 \`/help\` - Get a list of possible commands
-\`/stats\` - Get the leaderboard of an ongoing month's activities
+\`/stats\` - Get your personal statistics
+\`/leaderboard\` - Get the leaderboard of an ongoing month's activities
 `);
   }
 }
