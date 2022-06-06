@@ -10,7 +10,7 @@ export class UpdateActivitiesJob extends JobBase {
   get options(): JobOptions {
     return {
       name: 'update-activities',
-      schedule: process.env.SCHEDULE || '*/10 5-23 * * *',
+      schedule: process.env.SCHEDULE || '0 0 * * *',
       immediate: true
     };
   }

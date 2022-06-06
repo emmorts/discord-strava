@@ -15,7 +15,7 @@ export class MonthlyResultsJob extends JobBase {
   get options(): JobOptions {
     return {
       name: 'monthly-results',
-      schedule: '0 10 1 * *',
+      schedule: '0 6 1 * *',
       immediate: false
     };
   }
