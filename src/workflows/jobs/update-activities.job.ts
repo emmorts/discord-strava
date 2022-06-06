@@ -90,7 +90,7 @@ export class UpdateActivitiesJob extends JobBase {
     if (current[rankKey] < previous[rankKey]) {
       const place = this.getPlace(current[rankKey]);
       const victims = previousAggregates
-        .filter(x => x.athlete_id != current.athlete_id && current[rankKey] <= x[rankKey])
+        .filter(x => x.athlete_id != current.athlete_id && current[rankKey] <= x[rankKey] && x[rankKey] < previous[rankKey])
         .map(x => this.getAthleteName(x.athlete_firstname, x.athlete_lastname));
       
       if (victims.length) {
@@ -177,7 +177,7 @@ export class UpdateActivitiesJob extends JobBase {
       if (!ALLOWED_ACTIVITY_TYPES.length || ALLOWED_ACTIVITY_TYPES.includes(activity.type)) {
         const activityMessage = this.generateNewActivityMessage(athleteAccess, activity);
 
-        webhookClient.send({
+        await webhookClient.send({
           embeds: [activityMessage]
         });
       }
