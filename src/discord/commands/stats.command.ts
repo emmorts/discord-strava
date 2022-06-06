@@ -78,7 +78,7 @@ export class StatsCommand extends CommandBase {
     let buffer: Buffer | null = null;
 
     const browser = await puppeteer.launch({
-      args: ['--disable-dev-shm-usage'],
+      args: ['--no-sandbox', '--disable-dev-shm-usage'],
     });
     const page = await browser.newPage();
 
@@ -100,7 +100,7 @@ export class StatsCommand extends CommandBase {
     let buffer: Buffer | null = null;
 
     const browser = await puppeteer.launch({
-      args: ['--disable-dev-shm-usage'],
+      args: ['--no-sandbox', '--disable-dev-shm-usage'],
     });
     const page = await browser.newPage();
 
