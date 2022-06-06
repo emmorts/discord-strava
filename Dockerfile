@@ -25,15 +25,15 @@ WORKDIR /app
 COPY ["package.json", "package-lock.json*", "./"]
 
 ## Add user so we don't need --no-sandbox.
-RUN addgroup -S pptruser && adduser -S -G pptruser pptruser \
-    && mkdir -p /home/pptruser/Downloads /app \
-    && mkdir -p /app/logs \
-    && chown -R pptruser:pptruser /home/pptruser \
-    && chown -R pptruser:pptruser /app \
-    && chmod 755 /app/logs
+# RUN addgroup -S pptruser && adduser -S -G pptruser pptruser \
+#     && mkdir -p /home/pptruser/Downloads /app \
+#     && mkdir -p /app/logs \
+#     && chown -R pptruser:pptruser /home/pptruser \
+#     && chown -R pptruser:pptruser /app \
+#     && chmod 755 /app/logs
 
 # Run everything after as non-privileged user.
-USER pptruser
+# USER pptruser
 
 # Setup app
 
