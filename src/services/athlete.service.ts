@@ -204,13 +204,17 @@ function getValue(
 function getMessageFunction(type: MonthlyLeaderboardType): (athleteName: string, victims: string[], currentPlace: string, value: number) => string {
   switch (type) {
     case MonthlyLeaderboardType.Distance:
-      return (athlete, victims, place, value) =>  `**${athlete}** has overtaken ${victims.map(x => `*${x}*`).join(', ')} and is now in **${place}** place with a total distance of **${getDistance(value)}**!`;
+      return (athlete, victims, place, value) =>
+        `**${athlete}** is now **${place}** in total distance with **${getDistance(value)}**!\nOvertaken: ${victims.map(x => `*${x}*`).join(', ')}.`;
     case MonthlyLeaderboardType.MovingTime:
-      return (athlete, victims, place, value) => `**${athlete}** has overtaken ${victims.map(x => `*${x}*`).join(', ')} and is now in **${place}** place with a total moving time of **${getTime(value)}**!`;
+      return (athlete, victims, place, value) =>
+        `**${athlete}** is now **${place}** in total moving time with **${getTime(value)}**!\nOvertaken: ${victims.map(x => `*${x}*`).join(', ')}.`;
     case MonthlyLeaderboardType.ElevationGain:
-      return (athlete, victims, place, value) => `**${athlete}** has overtaken ${victims.map(x => `*${x}*`).join(', ')} and is now in **${place}** place with a total elevation gain of over **${round(value, 0)} meters**!`;
+      return (athlete, victims, place, value) =>
+        `**${athlete}** is now **${place}** in total elevation with **${round(value, 0)} meters**!\nOvertaken: ${victims.map(x => `*${x}*`).join(', ')}.`;
     case MonthlyLeaderboardType.Pace:
-      return (athlete, victims, place, value) => `**${athlete}** has overtaken ${victims.map(x => `*${x}*`).join(', ')} and is now in **${place}** place with a total pace of **${getFormattedPace(value)}**!`;
+      return (athlete, victims, place, value) =>
+        `**${athlete}** is now **${place}** in average pace with **${getFormattedPace(value)}**!\nOvertaken: ${victims.map(x => `*${x}*`).join(', ')}.`;
   }
 }
 
