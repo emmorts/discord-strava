@@ -16,7 +16,7 @@ export default class StravaService {
     let activities: Activity[] = [];
 
     try {
-      activities = await this.getStravaActivities(athleteAccess);
+      activities = await this.getStravaActivities(athleteAccess, numberOfDays);
     } catch (error) {
       this.logger.error(`Failed to fetch activities: ${error}`, { error });
     }
@@ -76,6 +76,8 @@ export default class StravaService {
     return new Promise((resolve, reject) => {
       const before = ~~(Date.now() / 1000);
       const after = before - DAY * numberOfDays;
+
+      this.logger.info(`Retrieving athlete ${athleteAccess.athlete_id} activities for the last ${numberOfDays} days`)
     
       strava.athlete.listActivities({
         'access_token': athleteAccess.access_token,
