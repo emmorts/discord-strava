@@ -10,7 +10,7 @@ export class UpdateActivitiesJob extends JobBase {
   get options(): JobOptions {
     return {
       name: 'update-activities',
-      schedule: process.env.SCHEDULE || '0 0 * * *',
+      schedule: '0 0 */5 * *',
       immediate: true
     };
   }
@@ -45,7 +45,7 @@ export class UpdateActivitiesJob extends JobBase {
   }
 
   private async processAthlete(athleteAccess: AthleteAccess, stravaService: StravaService, logger: Logger): Promise<number> {
-    const activities = await stravaService.getActivities(athleteAccess);
+    const activities = await stravaService.getActivities(athleteAccess, 10);
 
     let newActivities = 0;
 
