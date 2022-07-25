@@ -88,6 +88,8 @@ export function addSubscriptionRoutes(router: Router) {
         return;
       }
 
+      ctx.logger.info(`Received new activity for athlete ${athleteAccess.athlete_id}`);
+
       await saveAthleteActivity(athleteAccess, activity);
       await processRankChanges();
     }
