@@ -1,10 +1,9 @@
 import puppeteer from 'puppeteer';
-import { CommandInteraction, MessageAttachment, MessageEmbed, MessagePayload, WebhookEditMessageOptions } from 'discord.js';
+import { AttachmentBuilder, ChatInputCommandInteraction, CommandInteraction, EmbedBuilder } from 'discord.js';
 import { CommandBase, CommandData } from './command-base';
 import { getLongMonth } from '../../util/date';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { Logger } from 'winston';
-import { toPascalCase } from '../../util/string';
 import { MonthlyLeaderboardType, MonthlyLeaderboardTypeFmt } from '../../models/monthly-leaderboard-type';
 
 const URL = process.env.APP_URL || 'http://localhost:3000';
@@ -34,7 +33,7 @@ export class LeaderboardCommand extends CommandBase {
           ));
   }
 
-  async handle(interaction: CommandInteraction, logger: Logger): Promise<void> {
+  async handle(interaction: ChatInputCommandInteraction, logger: Logger): Promise<void> {
     const leaderboardType = this.getLeaderboardType(interaction, logger);
 
     await interaction.deferReply();
@@ -54,18 +53,18 @@ export class LeaderboardCommand extends CommandBase {
     }
   }
 
-  private getLeaderboardType(interaction: CommandInteraction, logger: Logger): MonthlyLeaderboardType {
+  private getLeaderboardType(interaction: ChatInputCommandInteraction, logger: Logger): MonthlyLeaderboardType {
     const leaderboardType = interaction.options.getString('type', true);
 
     return MonthlyLeaderboardTypeFmt.fromSlug(leaderboardType);
   }
 
-  private getLeaderboard(buffer: Buffer, leaderboardType: MonthlyLeaderboardType): [MessageAttachment, MessageEmbed] {
+  private getLeaderboard(buffer: Buffer, leaderboardType: MonthlyLeaderboardType): [AttachmentBuilder, EmbedBuilder] {
     const attachmentName = 'leaderboard.png';
-    const attachment = new MessageAttachment(buffer, attachmentName);
+    const attachment = new AttachmentBuilder(buffer).setName(attachmentName);
     const title = `${MonthlyLeaderboardTypeFmt.toString(leaderboardType)} leaderboard for ${getLongMonth()}`;
 
-    const leaderboardEmbed = new MessageEmbed()
+    const leaderboardEmbed = new EmbedBuilder()
       .setTitle(title)
       .setDescription(`Here's how the athletes are doing this month`)
       .setImage(`attachment://${attachmentName}`)
@@ -75,12 +74,12 @@ export class LeaderboardCommand extends CommandBase {
     return [attachment, leaderboardEmbed];
   }
 
-  private getChart(buffer: Buffer, leaderboardType: MonthlyLeaderboardType): [MessageAttachment, MessageEmbed] {
+  private getChart(buffer: Buffer, leaderboardType: MonthlyLeaderboardType): [AttachmentBuilder, EmbedBuilder] {
     const attachmentName = 'chart.png';
-    const attachment = new MessageAttachment(buffer, attachmentName);
+    const attachment = new AttachmentBuilder(buffer).setName(attachmentName);
     const title = `${MonthlyLeaderboardTypeFmt.toString(leaderboardType)} over time for ${getLongMonth()}`;
 
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle(title)
       .setDescription(`...and here's a neat chart of the leaderboard over time!`)
       .setImage(`attachment://${attachmentName}`)

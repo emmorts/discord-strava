@@ -1,7 +1,7 @@
-import { Client, Intents, MessageEmbed } from 'discord.js';
+import { Client, GatewayIntentBits } from 'discord.js';
 import { handleCommand, registerGuildCommands } from '../discord/command-controller';
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.on('ready', async () => {
   const guilds = await client.guilds.fetch();
@@ -16,7 +16,7 @@ client.on('ready', async () => {
 });
 
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isCommand()) return;
+  if (!interaction.isChatInputCommand()) return;
 
   await handleCommand(interaction);
 });

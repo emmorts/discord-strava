@@ -1,6 +1,5 @@
 import { REST } from '@discordjs/rest';
-import { Routes } from 'discord-api-types/v10';
-import { CommandInteraction, OAuth2Guild } from 'discord.js';
+import { Routes, ChatInputCommandInteraction, CommandInteraction, OAuth2Guild } from 'discord.js';
 import { getBotLogger } from '../logging';
 import { formatNs, timeAsync } from '../util/timer-utils';
 import { getCommandMap } from './commands';
@@ -37,7 +36,7 @@ export async function registerGuildCommands(guild: OAuth2Guild) {
 	}
 }
 
-export async function handleCommand(interaction: CommandInteraction) {
+export async function handleCommand(interaction: ChatInputCommandInteraction) {
   if (commandMap.has(interaction.commandName)) {
     const command = commandMap.get(interaction.commandName);
     if (!command) {

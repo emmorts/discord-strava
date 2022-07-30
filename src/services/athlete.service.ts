@@ -1,4 +1,4 @@
-import { MessageEmbed } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import { AthleteAccess } from "../models/athlete-access";
 import { AthleteActivity } from "../models/athlete-activity";
 import { MonthlyChartItem } from "../models/monthly-chart-item";
@@ -102,8 +102,8 @@ export async function processRankChanges(): Promise<void> {
   }
 }
   
-export function getNewActivityMessage(athleteAccess: AthleteAccess, activity: Activity): MessageEmbed {
-  const message = new MessageEmbed()
+export function getNewActivityMessage(athleteAccess: AthleteAccess, activity: Activity): EmbedBuilder {
+  const message = new EmbedBuilder()
     .setTitle(`New *${activity.type}* activity!`)
     .setAuthor({
       name: getAthleteName(athleteAccess.athlete_firstname, athleteAccess.athlete_lastname),
@@ -112,9 +112,11 @@ export function getNewActivityMessage(athleteAccess: AthleteAccess, activity: Ac
     })
     .setURL(getActivityUrl(activity)) 
     .setDescription(activity.name)
-    .addField('Distance', getDistance(activity.distance)!, true)
-    .addField('Time', getFormattedTime(activity.moving_time)!, true)
-    .addField('Pace', getPace(activity.distance, activity.moving_time)!, true)
+    .addFields(
+      { name: 'Distance', value: getDistance(activity.distance), inline: true },
+      { name: 'Time', value: getFormattedTime(activity.moving_time), inline: true },
+      { name: 'Pace', value: getPace(activity.distance, activity.moving_time), inline: true },
+    )
     .setImage(getStaticMapUrl(activity))
     .setFooter({
       text: `${activity.achievement_count} achievements gained`,
@@ -124,17 +126,17 @@ export function getNewActivityMessage(athleteAccess: AthleteAccess, activity: Ac
 
   const speed = getSpeed(activity.average_speed);
   if (speed) {
-    message.addField('Speed', speed, true)
+    message.addFields({ name: 'Speed', value: speed, inline: true });
   }
 
   const heartRate = getHeartRate(activity.average_heartrate);
   if (heartRate) {
-    message.addField('Heart Rate', heartRate, true);
+    message.addFields({ name: 'Heart Rate', value: heartRate, inline: true });
   }
 
   const cadence = getCadence(activity.average_cadence);
   if (cadence) {
-    message.addField('Cadence', cadence, true);
+    message.addFields({ name: 'Cadence', value: cadence, inline: true });
   }
 
   return message;

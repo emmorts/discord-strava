@@ -1,4 +1,4 @@
-import { CommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction } from "discord.js";
 import { Logger } from "winston";
 import { getAthleteAccessByDiscordId } from '../../services/athlete.service';
 import { CommandBase } from "./command-base";
@@ -12,7 +12,7 @@ export class StatsCommand extends CommandBase {
     return `Get information about your progress`;
   }
   
-  async handle(interaction: CommandInteraction, logger: Logger): Promise<void> {
+  async handle(interaction: ChatInputCommandInteraction, logger: Logger): Promise<void> {
     const athleteAccess = await getAthleteAccessByDiscordId(interaction.user.id);
     if (!athleteAccess) {
       await interaction.reply({
