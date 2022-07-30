@@ -145,11 +145,13 @@ function getChartData(leaderboardType: MonthlyLeaderboardType, date: Date, chart
     const chartItem = chartItems[i];
 
     if (!dataSetMap.has(chartItem.athlete_id)) {
+      const athleteName = `${chartItem.athlete_firstname} ${chartItem.athlete_lastname}`;
+
       dataSetMap.set(chartItem.athlete_id, {
-        label: `${chartItem.athlete_firstname} ${chartItem.athlete_lastname}`,
+        label: athleteName,
         data: new Array(labels.length).fill(null),
-        backgroundColor: getBackgroundColor(athletesAdded),
-        borderColor: getBorderColor(athletesAdded),
+        backgroundColor: getBackgroundColor(athleteName),
+        borderColor: getBorderColor(athleteName),
         borderWidth: 1,
         pointRadius: 2,
         cubicInterpolationMode: 'monotone',
@@ -157,7 +159,7 @@ function getChartData(leaderboardType: MonthlyLeaderboardType, date: Date, chart
         imageUrl: chartItem.athlete_photo_url,
         fill: false
       });
-      
+
       athletesAdded++;
     }
 
