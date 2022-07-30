@@ -113,9 +113,9 @@ export function getNewActivityMessage(athleteAccess: AthleteAccess, activity: Ac
     .setURL(getActivityUrl(activity)) 
     .setDescription(activity.name)
     .addFields(
-      { name: 'Distance', value: getDistance(activity.distance), inline: true },
-      { name: 'Time', value: getFormattedTime(activity.moving_time), inline: true },
-      { name: 'Pace', value: getPace(activity.distance, activity.moving_time), inline: true },
+      { name: 'Distance', value: getDistance(activity.distance)!, inline: true },
+      { name: 'Time', value: getFormattedTime(activity.moving_time)!, inline: true },
+      { name: 'Pace', value: getPace(activity.distance, activity.moving_time)!, inline: true },
     )
     .setImage(getStaticMapUrl(activity))
     .setFooter({
