@@ -140,6 +140,7 @@ function getChartData(leaderboardType: MonthlyLeaderboardType, date: Date, chart
   const labels = getDaysOfMonth(date);
   const currentDateLabelIndex = labels.indexOf(format(new Date(), 'yyyy-MM-dd'));
 
+  let athletesAdded = 0;
   for (let i = 0; i < chartItems.length; i++) {
     const chartItem = chartItems[i];
 
@@ -147,8 +148,8 @@ function getChartData(leaderboardType: MonthlyLeaderboardType, date: Date, chart
       dataSetMap.set(chartItem.athlete_id, {
         label: `${chartItem.athlete_firstname} ${chartItem.athlete_lastname}`,
         data: new Array(labels.length).fill(null),
-        backgroundColor: getBackgroundColor(i),
-        borderColor: getBorderColor(i),
+        backgroundColor: getBackgroundColor(athletesAdded),
+        borderColor: getBorderColor(athletesAdded),
         borderWidth: 1,
         pointRadius: 2,
         cubicInterpolationMode: 'monotone',
@@ -156,6 +157,8 @@ function getChartData(leaderboardType: MonthlyLeaderboardType, date: Date, chart
         imageUrl: chartItem.athlete_photo_url,
         fill: false
       });
+      
+      athletesAdded++;
     }
 
     const dateIndex = labels.indexOf(format(chartItem.date, 'yyyy-MM-dd'));
