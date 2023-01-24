@@ -13,12 +13,13 @@ steps:
       from_secret: GITEA_TOKEN
 - name: build-and-push-image
   image: plugins/docker
+  settings:
+    mtu: 12345
   volumes:
-  - name: hugosource
-    path: "/src"
   - name: dockersock
     path: "/var/run/docker.sock" # Mandatory
   settings:
+    registry: git.stropus.dev
     username: tomas
     password:
       from_secret: GITEA_TOKEN
