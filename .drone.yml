@@ -8,3 +8,20 @@ steps:
   commands:
   - echo hello
   - echo world
+  environment:
+    GITEA_TOKEN:
+      from_secret: GITEA_TOKEN
+- name: build-and-push-image
+  image: plugins/docker
+  volumes:
+  - name: hugosource
+    path: "/src"
+  - name: dockersock
+    path: "/var/run/docker.sock" # Mandatory
+  settings:
+    username: tomas
+    password:
+      from_secret: GITEA_TOKEN
+    repo: tomas/discord-strava
+    tags: 0.0.1
+    dockerfile: ./Dockerfile # Where the Dockerfile is located in your git repository
