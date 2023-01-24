@@ -14,10 +14,10 @@ steps:
 - name: build-and-push-image
   image: plugins/docker
   settings:
-    mtu: 12345
-  volumes:
-  - name: dockersock
-    path: "/var/run/docker.sock" # Mandatory
+    mtu: 1450
+  # volumes:
+  # - name: dockersock
+  #   path: "/var/run/docker.sock" # Mandatory
   settings:
     registry: git.stropus.dev
     username: tomas
