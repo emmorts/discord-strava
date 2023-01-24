@@ -9,7 +9,8 @@ steps:
     mtu: 1450
   settings:
     registry: git.stropus.dev
-    username: tomas
+    username: 
+      from_secret: GITEA_USER
     password:
       from_secret: GITEA_TOKEN
     repo: git.stropus.dev/tomas/discord-strava
