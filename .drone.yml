@@ -3,14 +3,6 @@ type: docker
 name: default
 
 steps:
-- name: greeting
-  image: alpine
-  commands:
-  - echo hello
-  - echo world
-  environment:
-    GITEA_TOKEN:
-      from_secret: GITEA_TOKEN
 - name: build-and-push-image
   image: plugins/docker
   settings:
