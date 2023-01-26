@@ -1,6 +1,6 @@
 kind: pipeline
 type: docker
-name: Push new image
+name: deploy
 
 steps:
 - name: build-and-push-image
@@ -13,11 +13,9 @@ steps:
     password:
       from_secret: GITEA_TOKEN
     repo: git.stropus.dev/tomas/discord-strava
-    tags: 0.0.1
-    dockerfile: ./Dockerfile # Where the Dockerfile is located in your git repository
+    tags: ${DRONE_TAG}
+    dockerfile: ./Dockerfile
 
 trigger:
-  branch:
-  - main
   event:
-  - push
+  - tag
