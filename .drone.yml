@@ -7,7 +7,6 @@ steps:
   image: plugins/docker
   settings:
     mtu: 1450
-  settings:
     registry: git.stropus.dev
     username: 
       from_secret: GITEA_USER
@@ -16,3 +15,8 @@ steps:
     repo: git.stropus.dev/tomas/discord-strava
     tags: 0.0.1
     dockerfile: ./Dockerfile # Where the Dockerfile is located in your git repository
+  when:
+    branch:
+    - master
+    event:
+    - push
