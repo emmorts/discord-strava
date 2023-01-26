@@ -1,6 +1,6 @@
 kind: pipeline
 type: docker
-name: default
+name: Push new image
 
 steps:
 - name: build-and-push-image
@@ -15,8 +15,9 @@ steps:
     repo: git.stropus.dev/tomas/discord-strava
     tags: 0.0.1
     dockerfile: ./Dockerfile # Where the Dockerfile is located in your git repository
-  when:
-    branch:
-    - master
-    event:
-    - push
+
+trigger:
+  branch:
+  - main
+  event:
+  - push
